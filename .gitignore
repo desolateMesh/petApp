@@ -77,7 +77,7 @@ Thumbs.db
 .snyk
 
 # Text Files
-3dfiguregeneration html.txt 
-flushandlush html.txt 
-index html.txt
-project structure.txt
+!3dfiguregeneration html.txt 
+!flushandlush html.txt 
+!index html.txt
+!project structure.txt
