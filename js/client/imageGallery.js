@@ -1,82 +1,33 @@
-import { showError } from './utils.js';
-
-// Image Gallery functionality
-const rowGalleries = {
-  row1: {
-    'flush-and-lush': [
-      '/public/images/dog1lush1.png',
-      '/public/images/dog1lush2.png',
-      '/public/images/dog1lush3.png',
-      '/public/images/realdog1lush.png',
-      '/public/images/realcatlush.png',
-      '/public/images/catlush1.png',
-      '/public/images/catlush2.png'
-    ],
-    '3d-figure': [
-      '/public/images/realfrenchBulldog.png',
-      '/public/images/frenchie3Dfigure1.png',
-      '/public/images/frenchie3Dfigure2.png',
-      '/public/images/frenchie3Dfigure3.png',
-      '/public/images/realBulldog.png',
-      '/public/images/bully3Dfigure1.png',
-      '/public/images/bully3Dfigure2.png'
-    ],
-    'realistic': [
-      '/images/exampleImages/realdog2lush.png',
-      '/images/exampleImages/dog3lush2.png',
-      '/images/exampleImages/dog3lush3.png',
-      '/images/exampleImages/dog3lush4.png',
-    ],
-  },
-  // ... (row2 and row3 data omitted for brevity)
-};
-
-let currentGallery = [];
-let currentImageIndex = 0;
-let modal, modalImg, closeBtn, prevBtn, nextBtn;
-
 export function initializeGallery() {
-  modal = document.getElementById('imageModal');
-  modalImg = document.getElementById('modalImage');
-  closeBtn = document.getElementsByClassName('close')[0];
-  prevBtn = document.getElementsByClassName('prev')[0];
-  nextBtn = document.getElementsByClassName('next')[0];
-
-  if (closeBtn) closeBtn.addEventListener('click', closeImageGallery);
-  if (prevBtn) prevBtn.addEventListener('click', showPreviousImage);
-  if (nextBtn) nextBtn.addEventListener('click', showNextImage);
-
-  window.addEventListener('click', function(event) {
-    if (event.target === modal) {
-      closeImageGallery();
+  const gridItems = document.querySelectorAll('.grid-item');
+  gridItems.forEach(item => {
+    const img = item.querySelector('img');
+    if (img) {
+      img.addEventListener('click', openFullImage);
     }
   });
 }
 
-export function openImageGallery(event) {
-  const gridItem = event.target.closest('.grid-item');
-  const galleryName = gridItem.dataset.gallery;
-  const rowName = gridItem.closest('.row').dataset.row;
-  currentGallery = rowGalleries[rowName][galleryName];
-  currentImageIndex = 0;
-  updateModalImage();
-  modal.style.display = 'block';
-}
+function openFullImage(event) {
+  const fullImageUrl = event.target.src;
+  const windowContent = `
+    <html>
+      <head>
+        <title>Full Image</title>
+        <style>
+          body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: black; }
+          img { max-width: 100%; max-height: 100%; object-fit: contain; }
+          #closeBtn { position: absolute; top: 10px; right: 10px; background: white; border: none; font-size: 20px; cursor: pointer; }
+        </style>
+      </head>
+      <body>
+        <button id="closeBtn" onclick="window.close()">X</button>
+        <img src="${fullImageUrl}" alt="Full Image">
+      </body>
+    </html>
+  `;
 
-function closeImageGallery() {
-  modal.style.display = 'none';
-}
-
-function showNextImage() {
-  currentImageIndex = (currentImageIndex + 1) % currentGallery.length;
-  updateModalImage();
-}
-
-function showPreviousImage() {
-  currentImageIndex = (currentImageIndex - 1 + currentGallery.length) % currentGallery.length;
-  updateModalImage();
-}
-
-function updateModalImage() {
-  modalImg.src = currentGallery[currentImageIndex];
+  const newWindow = window.open('', '_blank', 'width=800,height=600');
+  newWindow.document.write(windowContent);
+  newWindow.document.close();
 }

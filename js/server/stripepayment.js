@@ -15,19 +15,19 @@ const styles = {
   'flush-and-lush': {
     name: 'Flush & Lush',
     description: 'A plush representation of your dog.',
-    price: 50,
+    price: 599,
     successPath: '/flushandlush.html',
   },
   '3d-figure': {
     name: '3D Figure',
     description: 'A 3D printed model of your dog.',
-    price: 2000,
+    price: 899,
     successPath: '/3dfiguregeneration.html',
   },
   'realistic': {
     name: 'Realistic',
     description: 'A realistic portrait of your dog.',
-    price: 2000,
+    price: 499,
     successPath: '/realistic.html',
   },
 };

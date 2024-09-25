@@ -80,3 +80,47 @@ async function handleBuyButtonClick(style) {
     showError('An error occurred. Please try again.');
   }
 }
+
+// Image Display Handler
+const ImageDisplayHandler = {
+  init() {
+    const images = document.querySelectorAll('.grid-item img');
+    images.forEach((img, index) => {
+      img.setAttribute('data-index', index);
+      img.addEventListener('click', () => this.showImage(img.src, img.alt));
+    });
+  },
+
+  showImage(src, alt) {
+    const overlay = document.createElement('div');
+    overlay.className = 'image-overlay';
+    
+    const imgElement = document.createElement('img');
+    imgElement.src = src;
+    imgElement.alt = alt;
+    
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'close-btn';
+    closeBtn.addEventListener('click', () => this.closeOverlay(overlay));
+    
+    overlay.appendChild(imgElement);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        this.closeOverlay(overlay);
+      }
+    });
+  },
+
+  closeOverlay(overlay) {
+    if (overlay) {
+      overlay.remove();
+    }
+  }
+};
+
+// Export the ImageDisplayHandler if using ES modules
+export { ImageDisplayHandler };

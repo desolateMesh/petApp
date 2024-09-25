@@ -55,7 +55,7 @@
     <h2>Flush and Lush Image Generator</h2>
     <div class="grid-container">
       <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/realdog1.png" alt="Flush & Lush" >
+        <img src="/public/images/dog1lush1.png" alt="Flush & Lush" >
       </div>
       <div class="grid-item" data-gallery="flush-and-lush">
         <img src="/public/images/dog1lush2.png" alt="flush-and-lush">
@@ -73,7 +73,7 @@
         <img src="/public/images/cat1flushandlush3.png" alt="flush-and-lush">
       </div>
       <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/realdog2.png" alt="flush-and-lush">
+        <img src="/public/images/dog2flushandlush2.png" alt="flush-and-lush">
       </div>
       <div class="grid-item" data-gallery="flush-and-lush">
         <img src="/public/images/dog2flushandlush3.png" alt="flush-and-lush">
@@ -112,7 +112,7 @@
           <img src="/public/images/3dfigure7.png" alt="3d-figure">
         </div>
         <div class="grid-item" data-gallery="flush-and-lush">
-          <img src="/public/images/3dfigure8.png" alt="3d-figure">
+          <img src="/public/images/3dfigure1.png" alt="3d-figure">
         </div>
         <div class="grid-item" data-gallery="flush-and-lush">
           <img src="/public/images/3dfigure2.png" alt="3d-figure">
@@ -132,6 +132,14 @@
   </div>
   <br>
   <br>
+  <div class="contact" id="contact">
+    <h2>Contact</h2>
+    <p>
+      If you have any questions or feedback, please feel free to contact us at COMING SOON.</p>
+    </p>
+  </div>
+
+
   <div class="image-grid" id="select-a-style">
     <h2>Select a Style</h2>
       
@@ -217,13 +225,6 @@
       </div>
     </div>
   </div>
-
-<div class="contact" id="contact">
-  <h2>Contact</h2>
-  <p>
-    If you have any questions or feedback, please feel free to contact us at COMING SOON.</p>
-  </p>
-</div>
 
   <script src="js/client/main.js" type="module"></script>
 
