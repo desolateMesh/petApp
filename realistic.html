@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realistic Photo Generation - Upload Your Photos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5em;
+      color: #00A8CC;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    h2 {
+      font-size: 2em;
+      color: #333;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 1em;
+      color: #666;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    button[type="submit"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #00A8CC;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #00A8CC;
+    }
+    .error-message {
+      color: #dc3545;
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .grid-item {
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .grid-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .grid-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .grid-item button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background-color 0.3s ease;
+    }
+    .grid-item button:hover {
+      background-color: #00A8CC;
+    }
+    @media (max-width: 600px) {
+      .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      }
+      h1 {
+        font-size: 2em;
+      }
+      h2 {
+        font-size: 1.5em;
+      }
+      .container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the Realistic Photo Generator</h1>
+    <p>To start, upload a photo of your pet.</p>
+    <p>Depending on the complexity of the image, generation may take a few minutes. We appreciate your patience.</p>
+
+    <!-- Placeholder for payment verification -->
+    <div id="verificationMessage">
+      <p>Verifying payment, please wait...</p>
+    </div>
+
+    <!-- Photo upload form -->
+    <form id="uploadForm" enctype="multipart/form-data" style="display: none;">
+      <div class="form-group">
+        <label for="imageInput">Choose File</label>
+        <input type="file" id="imageInput" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+      </div>
+    </form>
+
+    <!-- Placeholder for error messages -->
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+    <!-- Section for displaying generated 3D model -->
+    <h2>Generated Realistic Photos</h2>
+    <div id="generatedModel" class="grid-container">
+      <!-- The generated 3D model will be inserted here -->
+    </div>
+  </div>
+
+  <script>
+    function checkPaymentStatus() {
+      console.log('Entering checkPaymentStatus function');
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      console.log('Session ID from URL:', sessionId);
+  
+      if (!sessionId) {
+        console.log('No session ID, assuming development mode');
+        initializeUploadForm();
+        return;
+      }
+  
+      console.log('Sending verification request to server');
+      fetch(`/verify-payment?session_id=${sessionId}`)
+        .then(response => {
+          console.log('Received response from server');
+          return response.json();
+        })
+        .then(data => {
+          console.log('Payment verification data:', data);
+          if (data.payment_status === 'paid') {
+            console.log('Payment verified, initializing upload form');
+            initializeUploadForm();
+          } else {
+            console.log('Payment not verified, redirecting to error page');
+            window.location.href = '/payment-error.html';
+          }
+        })
+        .catch(error => {
+          console.error('Error verifying payment:', error);
+          window.location.href = '/payment-error.html';
+        });
+    }
+  
+    function initializeUploadForm() {
+      console.log('Initializing upload form');
+      const uploadForm = document.getElementById('uploadForm');
+      if (uploadForm) {
+        uploadForm.style.display = 'block';
+        uploadForm.addEventListener('submit', handleImageUpload);
+      } else {
+        console.error('Upload form not found');
+      }
+    }
+  
+    function handleImageUpload(e) {
+      e.preventDefault();
+      console.log('Image upload functionality to be implemented');
+    }
+  
+    console.log('Page loaded, calling checkPaymentStatus');
+    checkPaymentStatus();
+  </script>
+</body>
+</html>
