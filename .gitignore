@@ -81,3 +81,7 @@ Thumbs.db
 !flushandlush html.txt 
 !index html.txt
 !project structure.txt
+
+# Do not ignore these essential files
+!package.json
+!package-lock.json
