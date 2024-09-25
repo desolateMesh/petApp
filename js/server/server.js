@@ -186,19 +186,25 @@ function extractAnswer(output) {
 app.post('/generate-images-flush-lush', async (req, res) => {
   try {
     const { prompt } = req.body;
+    const allImages = [];
 
-    const input = {
-      prompt: prompt,
-      output_quality: 80,
-      extra_lora_scale: 0.8
-    };
+    for (let i = 0; i < 7; i++) {
+      const input = {
+        prompt: prompt,
+        output_quality: 80,
+        extra_lora_scale: 0.8,
+        num_outputs: 4
+      };
 
-    const output = await replicate.run(
-      "bingbangboom-lab/flux-dreamscape:b761fa16918356ee07f31fad9b0d41d8919b9ff08f999e2d298a5a35b672f47e",
-      { input }
-    );
+      const output = await replicate.run(
+        "bingbangboom-lab/flux-dreamscape:b761fa16918356ee07f31fad9b0d41d8919b9ff08f999e2d298a5a35b672f47e",
+        { input }
+      );
 
-    res.json({ output: output });
+      allImages.push(...output);
+    }
+
+    res.json({ output: allImages });
   } catch (error) {
     console.error('Error in /generate-images-flush-lush:', error);
     res.status(500).json({ error: `An error occurred while generating images: ${error.message}` });
