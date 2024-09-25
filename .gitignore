@@ -1,0 +1,77 @@
+
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+jspm_packages/
+typings/
+.npm/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# VS Code settings
+.vscode/
+*.code-workspace
+
+# TypeScript compiled files
+*.tsbuildinfo
+*.d.ts
+
+# Dist/Build directory
+dist/
+build/
+
+# Output of 'npm pack'
+*.tgz
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# macOS System Files
+.DS_Store
+
+# Temporary files
+*.tmp
+*.swp
+
+# Env files
+.env
+.env.*.local
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Stripe CLI
+.stripe/
+
+# Debugger
+node_modules/.cache/
+.cache/
+
+# Docker
+.dockerignore
+
+# Windows System Files
+Thumbs.db
+
+# JetBrains IDEs
+.idea/
+
+# Snyk
+.snyk

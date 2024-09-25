@@ -1,0 +1,29 @@
+project_root/
+├── assests/
+│	├── images/
+│		├── /exampleImages
+│
+├── css/
+│   ├── components.css
+│   ├── layout.css
+│   ├── main.css
+│   ├── modal.css
+│   ├── reset.css
+│   └── responsive.css
+├── js/
+│   ├── client/
+│   │   ├── formHandlers.js
+│   │   ├── imageGallery.js
+│   │   ├── main.js
+│   │   └── uiComponents.js
+│   └── server/
+│       ├── cloudinary.js
+│       ├── imageProcessing.js
+│       ├── server.js
+│       └── stripepayment.js
+├──.env
+├── flushandlush.html
+├── cancel.html
+├── payment-error.html
+├── 3dfiguregeneration.html
+└── index.html

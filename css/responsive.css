@@ -1,0 +1,17 @@
+/* file: responsive.css */
+@media (max-width: 600px) {
+    .grid-container, #generatedPreview {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+  
+    .modal-content {
+      width: 95%;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .prev, .next {
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+  }
