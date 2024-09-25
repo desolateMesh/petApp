@@ -135,6 +135,30 @@
     background-color: #00A8CC;
   }
   
+  #flush-and-lush .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  #flush-and-lush .grid-item {
+    position: relative;
+    overflow: hidden;
+  }
+
+  #flush-and-lush img {
+    width: 100%;
+    height: 310px;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+  }
+
+  #flush-and-lush img:hover {
+    transform: scale(1.05);
+  }
+
+
   button {
     display: block;
     width: 100%;
