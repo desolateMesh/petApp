@@ -132,14 +132,6 @@
   </div>
   <br>
   <br>
-  <div class="contact" id="contact">
-    <h2>Contact</h2>
-    <p>
-      If you have any questions or feedback, please feel free to contact us at COMING SOON.</p>
-    </p>
-  </div>
-
-
   <div class="image-grid" id="select-a-style">
     <h2>Select a Style</h2>
       
@@ -210,6 +202,13 @@
       </div>
     </div>
   </div>
+</div>
+<br>
+<div class="contact" id="contact">
+  <h2>Contact</h2>
+  <p>
+    If you have any questions or feedback, please feel free to contact us at COMING SOON.</p>
+  </p>
 </div>
 
   <!-- Image Gallery Modal -->

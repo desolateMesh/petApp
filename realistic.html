@@ -144,17 +144,46 @@
       </div>
     </form>
 
+    <!-- Prompt input for image generation -->
+    <div id="promptInputContainer" style="display: none;">
+      <label for="prompt-input">Enter a prompt for the image:</label>
+      <input type="text" id="prompt-input" required>
+      <button id="generate-button">Generate Image</button>
+    </div>
+
     <!-- Placeholder for error messages -->
     <div id="errorMessage" class="error-message" style="display: none;"></div>
 
-    <!-- Section for displaying generated 3D model -->
+    <!-- Section for displaying generated images -->
     <h2>Generated Realistic Photos</h2>
-    <div id="generatedModel" class="grid-container">
-      <!-- The generated 3D model will be inserted here -->
+    <div id="image-container" class="grid-container">
+      <!-- The generated images will be inserted here -->
     </div>
   </div>
 
   <script>
+    async function generateRealisticImage(prompt) {
+      try {
+        const response = await fetch('/generate-realistic', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate image');
+        }
+
+        const data = await response.json();
+        return data.image_url;
+      } catch (error) {
+        console.error('Error generating realistic image:', error);
+        throw error;
+      }
+    }
+
     function checkPaymentStatus() {
       console.log('Entering checkPaymentStatus function');
       const urlParams = new URLSearchParams(window.location.search);
@@ -192,17 +221,63 @@
     function initializeUploadForm() {
       console.log('Initializing upload form');
       const uploadForm = document.getElementById('uploadForm');
-      if (uploadForm) {
+      const promptInputContainer = document.getElementById('promptInputContainer');
+      const verificationMessage = document.getElementById('verificationMessage');
+      
+      if (uploadForm && promptInputContainer) {
+        verificationMessage.style.display = 'none';
         uploadForm.style.display = 'block';
+        promptInputContainer.style.display = 'block';
         uploadForm.addEventListener('submit', handleImageUpload);
+        initializeGenerateButton();
       } else {
-        console.error('Upload form not found');
+        console.error('Upload form or prompt input container not found');
       }
     }
   
     function handleImageUpload(e) {
       e.preventDefault();
       console.log('Image upload functionality to be implemented');
+      // Add your image upload logic here
+    }
+
+    function initializeGenerateButton() {
+      const generateButton = document.getElementById('generate-button');
+      const imageContainer = document.getElementById('image-container');
+      const errorMessage = document.getElementById('errorMessage');
+
+      generateButton.addEventListener('click', async () => {
+        const prompt = document.getElementById('prompt-input').value;
+        if (!prompt) {
+          errorMessage.textContent = 'Please enter a prompt';
+          errorMessage.style.display = 'block';
+          return;
+        }
+
+        errorMessage.style.display = 'none';
+        generateButton.disabled = true;
+        generateButton.textContent = 'Generating...';
+
+        try {
+          const imageUrl = await generateRealisticImage(prompt);
+          const img = document.createElement('img');
+          img.src = imageUrl;
+          img.alt = 'Generated realistic image';
+          
+          const gridItem = document.createElement('div');
+          gridItem.className = 'grid-item';
+          gridItem.appendChild(img);
+          
+          imageContainer.appendChild(gridItem);
+        } catch (error) {
+          console.error('Failed to generate image:', error);
+          errorMessage.textContent = 'Failed to generate image. Please try again.';
+          errorMessage.style.display = 'block';
+        } finally {
+          generateButton.disabled = false;
+          generateButton.textContent = 'Generate Image';
+        }
+      });
     }
   
     console.log('Page loaded, calling checkPaymentStatus');

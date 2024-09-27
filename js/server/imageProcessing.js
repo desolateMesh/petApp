@@ -8,36 +8,44 @@ const replicate = new Replicate({
 });
 
 export async function processImage(file) {
-  const imageBuffer = fs.readFileSync(file.path);
-  const base64Image = imageBuffer.toString('base64');
+  try {
+    const imageBuffer = fs.readFileSync(file.path);
+    const base64Image = imageBuffer.toString('base64');
 
-  const breedModel = 'salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746';
+    const breedModel = 'salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746';
 
-  const breedInput = {
-    image: `data:image/${file.mimetype};base64,${base64Image}`,
-    task: 'visual_question_answering',
-    question: 'What breed is the dog?'
-  };
+    const breedInput = {
+      image: `data:image/${file.mimetype};base64,${base64Image}`,
+      task: 'visual_question_answering',
+      question: 'What breed is the dog?'
+    };
 
-  const breedOutput = await replicate.run(breedModel, { input: breedInput });
-  const dogBreed = extractAnswer(breedOutput);
+    const breedOutput = await replicate.run(breedModel, { input: breedInput });
+    let dogBreed = extractAnswer(breedOutput); // Ensure this function is defined
+    dogBreed = dogBreed.replace(/^Caption:\s*/i, ''); // Remove "Caption: " from the breed if present
 
-  const descriptionInput = {
-    image: `data:image/${file.mimetype};base64,${base64Image}`,
-    task: 'image_captioning',
-    question: `What color is the dog in the picture?`
-  };
+    const descriptionInput = {
+      image: `data:image/${file.mimetype};base64,${base64Image}`,
+      task: 'image_captioning',
+      question: 'What color is the dog in the picture?'
+    };
 
-  const descriptionOutput = await replicate.run(breedModel, { input: descriptionInput });
-  const dogDescription = extractAnswer(descriptionOutput);
+    const descriptionOutput = await replicate.run(breedModel, { input: descriptionInput });
+    let dogDescription = extractAnswer(descriptionOutput); // Ensure this function is defined
+    dogDescription = dogDescription.replace(/^Caption:\s*/i, ''); // Remove "Caption: " from the description if present
 
-  const initialPrompt = `A highly stylized, cartoonish 3D-rendered of a ${dogDescription} ${dogBreed} with large, exaggerated eyes and rounded features, resembling a toy figurine. The style should be smooth and polished with soft textures and vibrant colors, evoking a playful and whimsical feel, if there is anything in the background remove it`;
+    const initialPrompt = `A highly stylized, cartoonish 3D-rendered of ${dogBreed}${dogDescription} with large, exaggerated eyes and rounded features, resembling a toy figurine. The style should be smooth and polished with soft textures and vibrant colors, evoking a playful and whimsical feel`;
 
-  return { 
-    prompt: initialPrompt,
-    dog_breed: dogBreed, 
-    dog_description: dogDescription 
-  };
+    // Return the final result
+    return { 
+      prompt: initialPrompt,
+      dog_breed: dogBreed, 
+      dog_description: dogDescription 
+    };
+  } catch (error) {
+    console.error('Error processing image:', error);
+    throw error;
+  }
 }
 
 function extractAnswer(output) {
@@ -64,6 +72,26 @@ export async function generateImages(prompt) {
   }
 
   return generatedImages;
+}
+
+export async function generateRealisticImage(prompt) {
+  try {
+    let prediction = await replicate.deployments.predictions.create(
+      "desolatemesh",
+      "realistic",
+      {
+        input: {
+          prompt: prompt
+        }
+      }
+    );
+    prediction = await replicate.wait(prediction);
+    console.log("Generated realistic image:", prediction.output);
+    return prediction.output;
+  } catch (error) {
+    console.error('Error generating realistic image:', error);
+    throw error;
+  }
 }
 
 export async function process3DImage(imagePath) {

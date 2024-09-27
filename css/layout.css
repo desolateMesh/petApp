@@ -29,10 +29,18 @@
     margin-top: 20px;
   }
   
-  .home-content {
-    text-align: center;
-    margin: 20px auto;
-    max-width: 1200px;
-  }
+  /* Center the title */
+.home-content .title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
-  
+/* Left-align the main content */
+.home-content .text {
+  text-align: left;
+  font-size: 1rem;
+  margin-top: 20px;
+  line-height: 1.5; /* Optional: adds some spacing between lines */
+}

@@ -9,7 +9,7 @@ import fs from 'fs';
 import bodyParser from 'body-parser';
 
 import { configureCloudinary, uploadToCloudinary } from './cloudinary.js';
-import { processImage, generateImages } from '../server/imageProcessing.js';
+import { processImage, generateImages, generateRealisticImage} from '../server/imageProcessing.js';
 import { configureStripe, createCheckoutSession, verifyPayment, handleWebhook } from './stripepayment.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -210,6 +210,46 @@ app.post('/generate-images-flush-lush', async (req, res) => {
     res.status(500).json({ error: `An error occurred while generating images: ${error.message}` });
   }
 });
+
+
+app.post('/process-image-3d-figure', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded');
+    }
+    const result = await processImage(req.file);
+    res.json(result);
+    // Delete the uploaded image file
+    fs.unlinkSync(req.file.path);
+  } catch (error) {
+    console.error('Error during /process-image-3d-figure:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/generate-3d-figure', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const generatedImages = await generateImages(prompt);
+    res.json({ image_urls: generatedImages });
+  } catch (error) {
+    console.error('Error during /generate-3d-figure:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add this new route for generating realistic images
+app.post('/generate-realistic', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const generatedImage = await generateRealisticImage(prompt);
+    res.json({ image_url: generatedImage });
+  } catch (error) {
+    console.error('Error during /generate-realistic:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 app.post('/create-checkout-session', createCheckoutSession);
 app.get('/verify-payment', verifyPayment);
