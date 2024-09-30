@@ -238,18 +238,60 @@ app.post('/generate-3d-figure', async (req, res) => {
   }
 });
 
-// Add this new route for generating realistic images
-app.post('/generate-realistic', async (req, res) => {
+// New route for generating realistic images
+app.post('/generate-realistic', upload.single('image'), async (req, res) => {
   try {
     const { prompt } = req.body;
-    const generatedImage = await generateRealisticImage(prompt);
-    res.json({ image_url: generatedImage });
+    const imageFile = req.file;
+
+    if (!prompt || !imageFile) {
+      return res.status(400).json({ error: 'Prompt and image are required' });
+    }
+
+    // Read the image file and convert it to base64
+    const imageBuffer = fs.readFileSync(imageFile.path);
+    const base64Image = imageBuffer.toString('base64');
+
+    const input = {
+      prompt: prompt,
+      image: `data:${imageFile.mimetype};base64,${base64Image}`,
+      model: "dev",
+      lora_scale: 1,
+      num_outputs: 1,
+      aspect_ratio: "1:1",
+      output_format: "webp",
+      guidance_scale: 3.5,
+      output_quality: 90,
+      prompt_strength: 0.8,
+      extra_lora_scale: 1,
+      num_inference_steps: 28
+    };
+
+    console.log('Sending request to Replicate API with input:', JSON.stringify(input, null, 2));
+
+    const output = await replicate.run(
+      "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
+      { input }
+    );
+
+    console.log('Received output from Replicate API:', JSON.stringify(output, null, 2));
+
+    // Delete the temporary uploaded file
+    fs.unlinkSync(imageFile.path);
+
+    if (output && output.length > 0) {
+      res.json({ image_url: output[0] });
+    } else {
+      throw new Error('No output received from the API');
+    }
   } catch (error) {
-    console.error('Error during /generate-realistic:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error generating realistic image:', error);
+    if (error.response) {
+      console.error('API response:', error.response.data);
+    }
+    res.status(500).json({ error: 'An error occurred while generating the image' });
   }
 });
-
 
 app.post('/create-checkout-session', createCheckoutSession);
 app.get('/verify-payment', verifyPayment);
