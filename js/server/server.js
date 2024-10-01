@@ -321,6 +321,6 @@ app.get('/verify-payment', verifyPayment);
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), handleWebhook);
 
 // Start the server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
 });
