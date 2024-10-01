@@ -168,6 +168,7 @@
     #promptArea p {
       font-size: 14px;
       margin-bottom: 10px;
+      font-family: Arial,
     }
 
     #charCount {
@@ -200,7 +201,6 @@
   <div class="container">
     <h1>Welcome to the Flush and Lush Generator</h1>
     <p>To start, upload a photo of your pet.</p>
-    
 
     <!-- Photo upload form -->
     <form id="uploadForm" enctype="multipart/form-data">
@@ -215,18 +215,18 @@
     <div id="errorMessage" class="error-message" style="display: none;"></div>
 
     <!-- Spinner -->
-    <div id="spinner"></div>
+    <div id="spinner" style="display: none;">Loading...</div>
 
     <!-- Prompt area -->
-    <div id="promptArea">
-        <h3>Generated Prompt</h3>
-        <p>You can modify this prompt to customize the generated image:</p>
-        <p>Depending on the demand for this filter, generation may take a few minutes, we appreciate your patience.</p>
-    
-        <textarea id="promptText" rows="4"></textarea>
-        <div id="charCount">0 / 500</div>
-        <button id="generateButton">Generate Images</button>
-      </div>
+    <div id="promptArea" style="display: none;">
+      <h3>Generated Prompt</h3>
+      <p>You can modify this prompt to customize the generated image:</p>
+      <p>Depending on the demand for this filter, generation may take a few minutes. We appreciate your patience.</p>
+
+      <textarea id="promptText" rows="4"></textarea>
+      <div id="charCount">0 / 500</div>
+      <button id="generateButton">Generate Images</button>
+    </div>
 
     <!-- Section for displaying generated images -->
     <h2>Generated Images</h2>
@@ -289,15 +289,15 @@
         charCount.textContent = `${count} / 500`;
       }
     }
-  
+
     async function handleImageUpload(e) {
       e.preventDefault();
       console.log('Handling image upload for Flush and Lush');
-  
+
       const formData = new FormData(e.target);
       const spinner = document.getElementById('spinner');
       const errorMessage = document.getElementById('errorMessage');
-  
+
       spinner.style.display = 'block';
       errorMessage.style.display = 'none';
 
@@ -307,72 +307,78 @@
           body: formData
         });
 
-      if (!response.ok) {
-        throw new Error('Image processing failed');
+        if (!response.ok) {
+          throw new Error('Image processing failed');
+        }
+
+        const data = await response.json();
+        console.log('Image processing result:', data);
+
+        // Display the generated prompt
+        const promptArea = document.getElementById('promptArea');
+        const promptText = document.getElementById('promptText');
+        promptArea.style.display = 'block';
+        promptText.value = data.prompt;
+
+        // Update character count
+        updateCharCount();
+
+        // Set up the generate button
+        const generateButton = document.getElementById('generateButton');
+        generateButton.addEventListener('click', generateImagesFlushLush);
+
+      } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred while processing the image. Please try again.';
+        errorMessage.style.display = 'block';
+      } finally {
+        spinner.style.display = 'none';
       }
+    }
 
-      const data = await response.json();
-      console.log('Image processing result:', data);
+    async function generateImagesFlushLush() {
+      console.log('Generating images for Flush and Lush');
 
-      // Display the generated prompt
-      const promptArea = document.getElementById('promptArea');
+      const spinner = document.getElementById('spinner');
+      const errorMessage = document.getElementById('errorMessage');
       const promptText = document.getElementById('promptText');
-      promptArea.style.display = 'block';
-      promptText.value = data.prompt;
 
-      // Update character count
-      updateCharCount();
+      spinner.style.display = 'block';
+      errorMessage.style.display = 'none';
 
-      // Set up the generate button
-      const generateButton = document.getElementById('generateButton');
-      generateButton.addEventListener('click', generateImagesFlushLush);
+      try {
+        const response = await fetch('/generate-images-flush-lush', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: promptText.value })
+        });
 
-    } catch (error) {
-      console.error('Error:', error);
-      errorMessage.textContent = 'An error occurred while processing the image. Please try again.';
-      errorMessage.style.display = 'block';
-    } finally {
-      spinner.style.display = 'none';
-    }
-  }
+        if (!response.ok) {
+          throw new Error('Image generation failed');
+        }
 
-  async function generateImagesFlushLush() {
-    console.log('Generating images for Flush and Lush');
-  
-    const spinner = document.getElementById('spinner');
-    const errorMessage = document.getElementById('errorMessage');
-    const promptText = document.getElementById('promptText');
-  
-    spinner.style.display = 'block';
-    errorMessage.style.display = 'none';
+        const data = await response.json();
+        console.log('Generated images:', data);
 
-    try {
-      const response = await fetch('/generate-images-flush-lush', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: promptText.value })
-      });
+        // Display the generated images
+        displayGeneratedImages(data.output);
 
-      if (!response.ok) {
-        throw new Error('Image generation failed');
+        // Hide the prompt area and upload form after images are generated
+        const promptArea = document.getElementById('promptArea');
+        const uploadForm = document.getElementById('uploadForm');
+        promptArea.style.display = 'none';
+        uploadForm.style.display = 'none';
+
+      } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred while generating images. Please try again.';
+        errorMessage.style.display = 'block';
+      } finally {
+        spinner.style.display = 'none';
       }
-
-      const data = await response.json();
-      console.log('Generated images:', data);
-
-      // Display the generated images
-      displayGeneratedImages(data.output);
-
-    } catch (error) {
-      console.error('Error:', error);
-      errorMessage.textContent = 'An error occurred while generating images. Please try again.';
-      errorMessage.style.display = 'block';
-    } finally {
-      spinner.style.display = 'none';
     }
-  }
 
     function displayGeneratedImages(imageUrls) {
       const generatedImagesContainer = document.getElementById('generatedImages');

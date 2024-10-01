@@ -17,6 +17,7 @@ export function initializeFormHandlers() {
     uploadForm3D.addEventListener('submit', handle3DImageUpload);
   }
 
+  
   // Set up character count for prompt text
   const promptTextElement = document.getElementById('promptText');
   if (promptTextElement) {
@@ -244,5 +245,82 @@ function updateUIAfter3DUpload(data) {
         outputContainer.appendChild(link);
       }
     });
+  }
+}
+async function handleRealisticGeneration(e) {
+  e.preventDefault();
+  hideError();
+
+  const spinner = document.getElementById('spinner');
+  const promptText = document.getElementById('promptText');
+  const imageInput = document.getElementById('imageInput');
+
+  if (!promptText || promptText.value.trim().length < 3) {
+    showError('Prompt is too short. Please provide a more detailed description.');
+    return;
+  }
+
+  if (!imageInput || imageInput.files.length === 0) {
+    showError('Please select an image to upload.');
+    return;
+  }
+
+  if (spinner) spinner.style.display = 'block';
+
+  const formData = new FormData();
+  formData.append('prompt', promptText.value.trim());
+  formData.append('image', imageInput.files[0]);
+
+  try {
+    const response = await fetch('/generate-realistic', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      displayRealisticImages(data.image_urls);
+    } else {
+      const errorData = await response.json();
+      showError(errorData.error || 'An error occurred while generating images.');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showError('An error occurred. Please try again later.');
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+}
+
+function displayRealisticImages(imageUrls) {
+  const generatedPreview = document.getElementById('generatedPreview');
+  
+  if (generatedPreview) {
+    generatedPreview.innerHTML = ''; // Clear previous results
+    const gridContainer = document.createElement('div');
+    gridContainer.classList.add('image-grid');
+
+    imageUrls.forEach((url, index) => {
+      const imageContainer = document.createElement('div');
+      imageContainer.classList.add('image-container');
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = `Generated realistic image ${index + 1}`;
+      img.classList.add('generated-image');
+
+      const downloadButton = document.createElement('button');
+      downloadButton.textContent = 'Download';
+      downloadButton.classList.add('download-button');
+      downloadButton.addEventListener('click', () => {
+        downloadImage(url, `realistic-image-${index + 1}.png`);
+      });
+
+      imageContainer.appendChild(img);
+      imageContainer.appendChild(downloadButton);
+      gridContainer.appendChild(imageContainer);
+    });
+
+    generatedPreview.appendChild(gridContainer);
   }
 }

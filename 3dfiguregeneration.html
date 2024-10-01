@@ -6,7 +6,7 @@
   <title>3D Figure Generation - Upload Your Photos</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial, Arial;
       line-height: 1.6;
       color: #333;
       margin: 0;
@@ -30,7 +30,7 @@
     }
     p {
       color: #666;
-      text-align: center;
+      text-align: left;
     }
     .form-group {
       margin-bottom: 20px;
@@ -89,6 +89,7 @@
     #promptArea {
       display: fixed;
       margin-top: 20px;
+      font-family: Arial,
     }
     .grid-container {
       display: grid;
@@ -112,8 +113,12 @@
 <body>
   <div class="container">
     <h1>Welcome to the 3D Figure Generator</h1>
-    <p>To start, upload a photo of your pet.</p>
-    <p>We'll generate a description, which you can edit before creating the 3D figure.</p>
+    <p>To start, upload a photo of your pet and click Upload Image.
+    This will generate the prompt we have best determinded to get the quality of photo you want
+    However, feel free to manipulate the prompt anyway you see fit.
+    Once you have your prompt the way you like it, click the Generate 3D Figure button
+    Please allow us some time to generate these images, the processing time is dependant on the demand for this filter, we appreciate your patience.
+    Enjoy and have fun!</p>
 
     <form id="uploadForm" enctype="multipart/form-data">
       <div class="form-group">
@@ -190,6 +195,12 @@
 
           const data = await response.json();
           displayGeneratedImages(data.image_urls);
+          
+          // Hide the upload form and generate button after images are generated
+          document.getElementById('uploadForm').style.display = 'none';
+          generateButton.style.display = 'none';
+
+
         } catch (error) {
           console.error('Error:', error);
           errorMessage.textContent = 'An error occurred while generating the 3D figure. Please try again.';

@@ -230,8 +230,20 @@ app.post('/process-image-3d-figure', upload.single('image'), async (req, res) =>
 app.post('/generate-3d-figure', async (req, res) => {
   try {
     const { prompt } = req.body;
-    const generatedImages = await generateImages(prompt);
-    res.json({ image_urls: generatedImages });
+    const allImages = [];
+
+    // Assuming each call to generateImages generates 4 images
+    // Make 7 calls to get a total of 28 images
+    for (let i = 0; i < 7; i++) {
+      const images = await generateImages(prompt);
+      if (images && images.length > 0) {
+        allImages.push(...images);
+      } else {
+        console.warn(`No images generated in iteration ${i + 1}`);
+      }
+    }
+
+    res.json({ image_urls: allImages });
   } catch (error) {
     console.error('Error during /generate-3d-figure:', error);
     res.status(500).json({ error: error.message });
@@ -257,7 +269,7 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
       image: `data:${imageFile.mimetype};base64,${base64Image}`,
       model: "dev",
       lora_scale: 1,
-      num_outputs: 1,
+      num_outputs: 4,
       aspect_ratio: "1:1",
       output_format: "webp",
       guidance_scale: 3.5,
@@ -269,27 +281,38 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
 
     console.log('Sending request to Replicate API with input:', JSON.stringify(input, null, 2));
 
-    const output = await replicate.run(
-      "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
-      { input }
-    );
+    const allImages = [];
 
-    console.log('Received output from Replicate API:', JSON.stringify(output, null, 2));
+    // Make 7 API calls to generate a total of 28 images
+    for (let i = 0; i < 4; i++) {
+      const output = await replicate.run(
+        "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
+        { input }
+      );
+
+      console.log(`Received output ${i + 1} from Replicate API:`, JSON.stringify(output, null, 2));
+
+      if (output && output.length > 0) {
+        allImages.push(...output);
+      } else {
+        console.warn(`No output received from the API in run ${i + 1}`);
+      }
+    }
 
     // Delete the temporary uploaded file
     fs.unlinkSync(imageFile.path);
 
-    if (output && output.length > 0) {
-      res.json({ image_url: output[0] });
+    if (allImages.length > 0) {
+      res.json({ image_urls: allImages });
     } else {
-      throw new Error('No output received from the API');
+      throw new Error('No output received from the API after multiple attempts');
     }
   } catch (error) {
-    console.error('Error generating realistic image:', error);
+    console.error('Error generating realistic images:', error);
     if (error.response) {
       console.error('API response:', error.response.data);
     }
-    res.status(500).json({ error: 'An error occurred while generating the image' });
+    res.status(500).json({ error: 'An error occurred while generating the images' });
   }
 });
 

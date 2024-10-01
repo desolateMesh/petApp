@@ -16,6 +16,7 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
+      text-align: left;
     }
     h1 {
       font-size: 2.5em;
@@ -33,7 +34,7 @@
       font-size: 1em;
       color: #666;
       margin-bottom: 20px;
-      text-align: center;
+      text-align: left;
     }
     .form-group {
       margin-bottom: 20px;
@@ -187,8 +188,9 @@
 <body>
   <div class="container">
     <h1>Welcome to the Realistic Photo Generator</h1>
-    <p>To start, enter a prompt and select an image of your pet.</p>
-    <p>Depending on the complexity of the image, generation may take a few minutes. We appreciate your patience.</p>
+    <p>To start, enter a prompt, something simple for example, "Happy black, white, and brown, Border Collie wearing a blue raincoat.".</p>
+    <p>Next, click, Choose File and select the image to base the generation from and click Generate Image.</p>
+    <p>Depending on the demand on the server and image complexity generation may take a few minutes rarely but sometimes it may take between 10-15 minutes. We appreciate your patience.</p>
 
     <!-- Placeholder for payment verification -->
     <div id="verificationMessage">
@@ -238,7 +240,7 @@
         }
 
         const data = await response.json();
-        return data.image_url;
+        return data.image_urls;
       } catch (error) {
         console.error('Error generating realistic image:', error);
         throw error;
@@ -310,6 +312,7 @@
       const generateButton = document.getElementById('generate-button');
       const errorMessage = document.getElementById('errorMessage');
       const imageContainer = document.getElementById('image-container');
+      const generateForm = document.getElementById('generateForm');
 
       if (!prompt || !imageFile) {
         errorMessage.textContent = 'Please enter a prompt and select an image';
@@ -322,26 +325,58 @@
       generateButton.textContent = 'Generating...';
 
       try {
-        const imageUrl = await generateRealisticImage(prompt, imageFile);
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = 'Generated realistic image';
-        
-        const gridItem = document.createElement('div');
-        gridItem.className = 'grid-item';
-        gridItem.appendChild(img);
-        
-        imageContainer.appendChild(gridItem);
+        const imageUrls = await generateRealisticImage(prompt, imageFile);
+        imageUrls.forEach((imageUrl, index) => {
+          const img = document.createElement('img');
+          img.src = imageUrl;
+          img.alt = `Generated realistic image ${index + 1}`;
+          
+          const downloadButton = document.createElement('button');
+          downloadButton.textContent = 'Download';
+          downloadButton.onclick = () => downloadImage(imageUrl, `generated-image-${index + 1}.png`);
+          downloadButton.className = 'download-button';
+
+          const gridItem = document.createElement('div');
+          gridItem.className = 'grid-item';
+          gridItem.appendChild(img);
+          gridItem.appendChild(downloadButton);
+
+          imageContainer.appendChild(gridItem);
+        });
+
+        // Hide the form after images are generated
+        generateForm.style.display = 'none';
+
       } catch (error) {
         console.error('Failed to generate image:', error);
         errorMessage.textContent = 'Failed to generate image. Please try again.';
         errorMessage.style.display = 'block';
+
       } finally {
         generateButton.disabled = false;
         generateButton.textContent = 'Generate Image';
       }
     }
-  
+
+function downloadImage(url, filename) {
+  fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch(error => {
+      console.error('Error downloading image:', error);
+      alert('Failed to download the image. Please try again.');
+    });
+}
+
+
+
     console.log('Page loaded, calling checkPaymentStatus');
     checkPaymentStatus();
   </script>
