@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/modal.css">
   <link rel="stylesheet" href="css/responsive.css">
-
 </head>
 <body>
   <!-- Header and navigation -->
@@ -31,164 +30,253 @@
   </div>
   
   <!-- Back to Top Button -->
-<button class="circle-button" aria-label="Back to top">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M18 15l-6-6-6 6"/>
-  </svg>
-</button>
+  <button class="circle-button" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
 
   <!-- Main content -->
   <div class="home" id="home">
-      <br><br><br>
-      <div class="home-content">
-        <div class="title">Welcome to Pet Glam</div>
-        <div class="text">
-            <p>
-                Pet Glam transforms the challenge of capturing a great image of your pet. Pet Glam helps create the perfect image from your uploaded photo.
-            </p>
-            <p>
-                Using advanced models, Pet Glam generates new, refined versions of your pet's image.
-            </p>
-        </div>
+    <br><br><br>
+    <div class="home-content">
+      <div class="title">Welcome to Pet Glam</div>
+      <div class="text" style="max-width: 1000px; margin: 0 auto; line-height: 1.6; font-size: 16px;">
+        <h2 style="color: #00A8CC; text-align: left; margin-bottom: 20px;">How it works</h2>
+        
+        <p>Pet Glam helps with the challenge of capturing a great image of your pet:</p>
+        
+        <ul style="list-style-type: none; padding-left: 20px;">
+          <li>✨ We help create the perfect image from your uploaded photo.✨</li>
+          <li>🎨 Using advanced models, we generate new, refined versions of your pet's image.🎨</li>
+        </ul>
+      
+        <h3 style="color: #00A8CC; margin-top: 20px;">Prices:</h3>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
+            <h4 style="margin: 0;">Flush and Lush</h4>
+            <p>28 images @ $X.XX</p>
+          </div>
+          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
+            <h4 style="margin: 0;">3D Figure</h4>
+            <p>28 images @ $X.XX</p>
+          </div>
+          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
+            <h4 style="margin: 0;">Realistic</h4>
+            <p>16 images @ $X.XX</p>
+          </div>
+        </div>     
+        <p style="text-align: center; font-weight: bold;">How to Get Started:</p>
+        <ol style="padding-left: 20px;">
+          <li>Click on any of the "Buy" buttons for the style you like</li>
+          <li>Enter your payment information in the secure Stripe payment area</li>
+          <li>Once payment is verified, you'll be able to generate and download your new images</li>
+        </ol>
+      </div>
     </div>
   </div>
 
   <br>
 
-  <div class="app-fush-container" id="flush-and-lush"></div>
+  <div class="app-fush-container" id="flush-and-lush">
     <h2>Flush and Lush Image Generator</h2>
+    <p>Below are examples of some generated animals. Purchases of this generator will produce 28 individual images to choose to download from.</p>
     <div class="grid-container">
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog1lush1.png" alt="Flush & Lush" >
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog1lush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
+        </div>        
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog1lush2.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog1lush2.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
+        </div>      
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog1lush3.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog1lush3.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
+        </div>       
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/cat1flushandlush1.png" alt="Flush & Lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/cat1flushandlush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realcat1.jpg" alt="Real Cat" class="hover-image">
+        </div>       
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/cat1flushandlush2.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/cat1flushandlush2.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realcat1.jpg" alt="Real Cat" class="hover-image">
+        </div>       
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/cat1flushandlush3.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/cat1flushandlush3.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realcat1.jpg" alt="Real Cat" class="hover-image">
+        </div>       
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog2flushandlush2.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog2flushandlush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog2.png" alt="Real Dog" class="hover-image">
+        </div>        
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog2flushandlush3.png" alt="flush-and-lush">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog2flushandlush3.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog2.png" alt="Real Dog" class="hover-image">
+        </div> 
       </div>
-      <div class="grid-item" data-gallery="flush-and-lush">
-        <img src="/public/images/dog2flushandlush1.png" alt="flush-and-lush">
-    </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog2flushandlush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog2.png" alt="Real Dog" class="hover-image">
+        </div>
+      </div>
     </div>
   </div>
-
   
   <br>
-
+  
   <div class="3d-figure" id="3d-figure">
     <h2>3D Figure Creation</h2>
     <div id="3d-figure-images"></div>
     <p>This filter will take a picture of your pup or kitten and turn them into a 3D Figure. </p>
-    <div class="app-3d-figure-container" id="3d-figure"></div>
-      <div class="grid-container">
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/3dfigure1.png" alt="3d-figure" >
+    <p>Below are examples of some generated animals. Purchases of this generator will produce 28 individual images to choose to download from.</p>
+    <div class="grid-container">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure1.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/australianshepherdreal.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/3dfigure3.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure3.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/bulldogreal.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/3dfigure4.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure4.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/labradorretrieverreal.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/3dfigure5.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure5.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/poodlereal2.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/3dfigure6.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/collie3Dfigure3.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/colliereal2.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="flush-and-lush">
-          <img src="/public/images/cat3dfigure.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/cat3dfigure.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/realcat1.jpg" alt="Real Cat" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="flush-and-lush">
-          <img src="/public/images/frenchie3Dfigure1.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/frenchie3Dfigure1.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/frenchbulldogreal.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="flush-and-lush">
-          <img src="/public/images/3dfigure2.png" alt="3d-figure">
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure2.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/dachshundreal3.png" alt="Real Dog" class="hover-image">
         </div>
-        <div class="grid-item" data-gallery="flush-and-lush">
-          <img src="/public/images/3dfigure9.png" alt="3d-figure">
-
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/3dfigure9.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/realistic2.png" alt="Real Dog" class="hover-image">
         </div>
       </div>
     </div>
   </div>
+  
   <br>
-  <div class="realistic" id="realistic"></div>
+  
+  <div class="realistic" id="realistic">
     <h2>Realistic Photo Regeneration</h2>
     <div id="savedImages"></div>
     <p>This filter will take a picture of your pup or kitten and turn them into and recreate it using a realistic tone creating some neat pictures. </p>
+    <p>Below are examples of some generated animals. Purchases of this generator will produce 16 individual images to choose to download from.</p>
     <br>
-    <div class="app-realistic" id="realistic"></div>
-      <div class="grid-container">
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/realistic3.png" alt="3d-figure" >
-        </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/realistic2.png" alt="3d-figure">
-        </div>
-        <div class="grid-item" data-gallery="3d-figure">
-          <img src="/public/images/realistic6.png" alt="3d-figure">
-        </div>
-  </div>
-  <br>
-  <br>
-  <div class="image-grid" id="select-a-style">
-    <h2>Select a Style</h2>
-      
-    <!-- Row 1 -->
-      <div class="row" data-row="row1">
-        <div class="grid-container">
-          <div class="grid-item" data-gallery="flush-and-lush">
-            <img src="/public/images/dog1lush1.png" alt="Flush & Lush" class="gallery-trigger">
-            <p>Flush&Lush: 28 images</p>
-              <!-- Example Buy Button -->
-            <button class="buy-button" data-style="flush-and-lush">Buy</button>
-
-          </div>
-          <div class="grid-item" data-gallery="3d-figure">
-            <img src="/public/images/frenchie3Dfigure2.png" alt="3D Figure" class="gallery-trigger">
-            <p>3D Figure: 28 images</p>
-            <button class="buy-button" data-style="3d-figure">Buy</button>
-          </div>
-
-          <div class="grid-item" data-gallery="realistic">
-            <img src="/public/images/realistic.png" alt="Realistic" class="gallery-trigger">
-            <p>Realistic: 12 images</p>
-            <button class="buy-button" data-style="realistic">Buy</button>
-          </div>
+    <div class="grid-container">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/realistic3.png" alt="Realistic" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1lush.jpg" alt="Real Dog" class="hover-image">
         </div>
       </div>
-      
-      <!-- Row 2  -->
-      <div class="row" data-row="row2">
-        <div class="grid-container">
-          <div class="grid-item" data-gallery="removebackground">
-            <img src="public/images/catnobackground.png" alt="Background Removal" class="gallery-trigger">
-            <p>Remove Background TBA</p>
-            
-            <button class="buy-button" data-style="vintage">Buy</button>
-          </div>
-        
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/realistic2.png" alt="Realistic" class="main-image gallery-trigger">
+          <img src="/public/images/chihuahuareal.png" alt="Real Dog" class="hover-image">
+        </div>
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/realistic6.png" alt="Realistic" class="main-image gallery-trigger">
+          <img src="/public/images/realfrenchBulldog.png" alt="Real Dog" class="hover-image">
+        </div>
+      </div>
     </div>
   </div>
-</div>
-<br>
+  
+  <br>
+  <br>
+  
+  <div class="image-grid" id="select-a-style">
+    <h2>Select a Style</h2>
+    <div class="grid-container">
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/dog1lush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
+        </div>
+        <p>Flush&Lush: 28 images</p>
+        <button class="buy-button" data-style="flush-and-lush">Buy</button>
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/frenchie3Dfigure2.png" alt="3D Figure" class="main-image gallery-trigger">
+          <img src="/public/images/frenchbulldogreal.png" alt="Real Dog" class="hover-image">
+        </div>
+        <p>3D Figure: 28 images</p>
+        <button class="buy-button" data-style="3d-figure">Buy</button>
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="/public/images/realistic.png" alt="Realistic" class="main-image gallery-trigger">
+          <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
+        </div>
+        <p>Realistic: 12 images</p>
+        <button class="buy-button" data-style="realistic">Buy</button>
+      </div>
+      <div class="grid-item">
+        <div class="image-container">
+          <img src="public/images/catnobackground.png" alt="Background Removal" class="main-image gallery-trigger">
+          <img src="/public/images/realcat1.jpg" alt="Real Cat" class="hover-image">
+        </div>
+        <p>Remove Background TBA</p>
+        <button class="buy-button" data-style="vintage">Buy</button>
+      </div>
+    </div>
+  </div>
+  
+  <br>
 <div class="contact" id="contact">
   <h2>Contact</h2>
   <p>

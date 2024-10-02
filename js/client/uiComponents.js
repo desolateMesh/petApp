@@ -4,6 +4,7 @@ export function initializeUIComponents() {
   initializeHamburgerMenu();
   initializeBackToTopButton();
   initializeBuyButtons();
+  initializeHoverImages();
 }
 
 function initializeHamburgerMenu() {
@@ -22,7 +23,7 @@ function initializeBackToTopButton() {
 
   if (backToTopButton) {
     window.addEventListener('scroll', function() {
-      if (window.pageYOffset > 300) {
+      if (window.pageYOffset > 100) {
         backToTopButton.classList.add('show');
       } else {
         backToTopButton.classList.remove('show');
@@ -127,6 +128,25 @@ const ImageDisplayHandler = {
     }
   }
 };
+
+function initializeHoverImages() {
+  const images = document.querySelectorAll('.grid-item img');
+  images.forEach((img) => {
+    const hoverImage = img.getAttribute('data-hover-image');
+    if (hoverImage) {
+      img.addEventListener('mouseenter', () => {
+        img.setAttribute('data-original-src', img.src);
+        img.src = hoverImage;
+      });
+      img.addEventListener('mouseleave', () => {
+        const originalSrc = img.getAttribute('data-original-src');
+        if (originalSrc) {
+          img.src = originalSrc;
+        }
+      });
+    }
+  });
+}
 
 // Export the ImageDisplayHandler if using ES modules
 export { ImageDisplayHandler };
