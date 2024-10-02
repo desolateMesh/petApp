@@ -21,13 +21,19 @@ function initializeBackToTopButton() {
   const backToTopButton = document.querySelector('.circle-button');
 
   if (backToTopButton) {
-    window.onscroll = function() {
-      scrollFunction(backToTopButton);
-    };
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.add('show');
+      } else {
+        backToTopButton.classList.remove('show');
+      }
+    });
 
     backToTopButton.addEventListener('click', function() {
-      document.body.scrollTop = 0; // For Safari
-      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     });
   }
 }
