@@ -7,10 +7,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import bodyParser from 'body-parser';
-
+import db from './db.js';
 import { configureCloudinary, uploadToCloudinary } from './cloudinary.js';
 import { processImage, generateImages, generateRealisticImage} from '../server/imageProcessing.js';
 import { configureStripe, createCheckoutSession, verifyPayment, handleWebhook } from './stripepayment.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -320,7 +321,43 @@ app.post('/create-checkout-session', createCheckoutSession);
 app.get('/verify-payment', verifyPayment);
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), handleWebhook);
 
+// Example route to insert data into the 'payments' table
+app.post('/add-payment', async (req, res) => {
+  const { userId, paymentIntentId, amount, currency } = req.body;
+
+  try {
+    const queryText = `INSERT INTO payments (user_id, payment_intent_id, amount, currency)
+                       VALUES ($1, $2, $3, $4) RETURNING *`;
+    const result = await db.query(queryText, [userId, paymentIntentId, amount, currency]);
+    res.json(result.rows[0]); // Return the inserted row
+  } catch (err) {
+    console.error('Error inserting payment:', err);
+    res.status(500).json({ error: 'Failed to insert payment' });
+  }
+});
+
+// Example route to retrieve all payments
+app.get('/payments', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM payments');
+    res.json(result.rows); // Return all rows in the 'payments' table
+  } catch (err) {
+    console.error('Error retrieving payments:', err);
+    res.status(500).json({ error: 'Failed to retrieve payments' });
+  }
+});
+
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW()'); // Query the current time
+    res.json(result.rows[0]); // Return the result
+  } catch (err) {
+    console.error('Error connecting to database:', err);
+    res.status(500).send('Database connection failed');
+  }
+});
+
 // Start the server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(3003, () => {
+  console.log('Server is running on port 3003');
 });
