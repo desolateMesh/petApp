@@ -39,6 +39,9 @@ app.use('/js', express.static(path.join(__dirname, '../../js'), {
 }));
 app.use('/images', express.static(path.join(__dirname, '../../public/images')));
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+app.use('/js', express.static(path.join(__dirname, '../../js'), {
+  setHeaders: (res) => res.set('Content-Type', 'application/javascript')
+}));
 
 // Serve HTML files
 app.use(express.static(path.join(__dirname, '../../')));
