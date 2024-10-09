@@ -236,39 +236,28 @@
   </div>
 
   <script>
-    function checkPaymentStatus() {
-      console.log('Entering checkPaymentStatus function');
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('session_id');
-      console.log('Session ID from URL:', sessionId);
-  
-      if (!sessionId) {
-        console.log('No session ID, assuming development mode');
-        initializeUploadForm();
-        return;
-      }
-  
-      console.log('Sending verification request to server');
-      fetch(`/verify-payment?session_id=${sessionId}`)
-        .then(response => {
-          console.log('Received response from server');
-          return response.json();
-        })
-        .then(data => {
-          console.log('Payment verification data:', data);
-          if (data.payment_status === 'paid') {
-            console.log('Payment verified, initializing upload form');
-            initializeUploadForm();
-          } else {
-            console.log('Payment not verified, redirecting to error page');
-            window.location.href = '/payment-error.html';
-          }
-        })
-        .catch(error => {
-          console.error('Error verifying payment:', error);
+    async function checkTokenAndPaymentStatus() {
+      console.log('Entering checkTokenAndPaymentStatus function');
+      
+      try {
+        const response = await fetch('/validate-token');
+        const data = await response.json();
+        
+        if (data.valid) {
+          console.log('Token is valid, initializing upload form');
+          initializeUploadForm();
+        } else {
+          console.log('Token is invalid, redirecting to error page');
           window.location.href = '/payment-error.html';
-        });
+        }
+      } catch (error) {
+        console.error('Error validating token:', error);
+        window.location.href = '/payment-error.html';
+      }
     }
+
+    // Replace the existing checkPaymentStatus function with this new one
+    checkTokenAndPaymentStatus();
   
     function initializeUploadForm() {
       console.log('Initializing upload form');
@@ -336,13 +325,21 @@
       }
     }
 
+    // Function to get session_id from URL
+    function getSessionIdFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('session_id');
+    }
+
+    const session_id = getSessionIdFromURL();
+
     async function generateImagesFlushLush() {
       console.log('Generating images for Flush and Lush');
-
+  
       const spinner = document.getElementById('spinner');
       const errorMessage = document.getElementById('errorMessage');
       const promptText = document.getElementById('promptText');
-
+  
       spinner.style.display = 'block';
       errorMessage.style.display = 'none';
 
@@ -365,11 +362,8 @@
         // Display the generated images
         displayGeneratedImages(data.output);
 
-        // Hide the prompt area and upload form after images are generated
-        const promptArea = document.getElementById('promptArea');
-        const uploadForm = document.getElementById('uploadForm');
-        promptArea.style.display = 'none';
-        uploadForm.style.display = 'none';
+        // Disable the generate button after successful generation
+        document.getElementById('generateButton').disabled = true;
 
       } catch (error) {
         console.error('Error:', error);
@@ -418,5 +412,10 @@
     checkPaymentStatus();
   </script>
   <script src="/js/server/security.js"></script>
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      fetch('/clear-paid-session', { method: 'POST' });
+    });
+  </script>
 </body>
 </html>

@@ -381,5 +381,10 @@ function downloadImage(url, filename) {
     checkPaymentStatus();
   </script>
   <script src="/js/server/security.js"></script>
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      fetch('/clear-paid-session', { method: 'POST' });
+    });
+  </script>
 </body>
 </html>

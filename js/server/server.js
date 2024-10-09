@@ -2,6 +2,8 @@
 
 import 'dotenv/config';
 import express from 'express';
+import session from 'express-session';
+import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -10,8 +12,11 @@ import bodyParser from 'body-parser';
 import db from './db.js';
 import { configureCloudinary, uploadToCloudinary } from './cloudinary.js';
 import { processImage, generateImages, generateRealisticImage} from '../server/imageProcessing.js';
-import { configureStripe, createCheckoutSession, verifyPayment, handleWebhook } from './stripepayment.js';
+import { configureStripe, createCheckoutSession, handlePaymentSuccess, handleWebhook } from './stripepayment.js';
 
+import Replicate from 'replicate';
+
+configureStripe();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,18 +24,52 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3003;
 
-import Replicate from 'replicate';
+
 
 // Initialize the Replicate client
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-
-// Add this line to enable development mode
+// Enable development mode
 const DEV_MODE = process.env.NODE_ENV === 'development';
 
-// Serve static files from the specific directories
+// Middleware
+app.use(bodyParser.json());
+app.use(express.json()); // Parse JSON bodies
+
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production', 
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+
+// New route for token validation
+app.get('/validate-token', async (req, res) => {
+  const sessionToken = req.session.token;
+  if (!sessionToken) {
+    return res.status(401).json({ error: 'No token found in session' });
+  }
+
+  try {
+    const result = await db.query('SELECT * FROM tokens WHERE token = $1 AND used = FALSE', [sessionToken]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or used token' });
+    }
+    res.json({ valid: true });
+  } catch (error) {
+    console.error('Error validating token:', error);
+    res.status(500).json({ error: 'An error occurred while validating the token' });
+  }
+});
+
+// Serve static files
 app.use('/css', express.static(path.join(__dirname, '../../css'), {
   setHeaders: (res) => res.set('Content-Type', 'text/css')
 }));
@@ -39,18 +78,12 @@ app.use('/js', express.static(path.join(__dirname, '../../js'), {
 }));
 app.use('/images', express.static(path.join(__dirname, '../../public/images')));
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
-app.use('/js', express.static(path.join(__dirname, '../../js'), {
-  setHeaders: (res) => res.set('Content-Type', 'application/javascript')
-}));
 
 // Serve HTML files
 app.use(express.static(path.join(__dirname, '../../')));
 
 // Configure Cloudinary
 configureCloudinary();
-
-// Configure Stripe
-const stripe = configureStripe();
 
 // Ensure the 'uploads' directory exists
 const uploadDir = 'uploads';
@@ -73,8 +106,37 @@ const upload = multer({ storage: storage });
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
 
-// Parse JSON bodies (as sent by API clients)
-app.use(express.json());
+// Set up routes
+app.post('/create-checkout-session', createCheckoutSession);
+app.get('/payment-success', handlePaymentSuccess);
+
+app.post('/webhook', handleWebhook);
+
+app.post('/verify-payment', async (req, res) => {
+  const { sessionId } = req.body; // Get session ID from request body
+
+  try {
+    // Step 1: Retrieve the session stored in your database (based on sessionId)
+    const storedSession = await db.query('SELECT * FROM payment_sessions WHERE session_id = $1', [sessionId]);
+
+    if (!storedSession.rows.length) {
+      return res.status(400).json({ status: 'failed', message: 'Session not found in database' });
+    }
+
+    // Step 2: Verify the payment session with Stripe
+    const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
+
+    // Step 3: If session IDs match, render the flushandlush.html page
+    if (session.id === storedSession.rows[0].session_id) {
+      return res.sendFile(path.join(__dirname, 'views', 'flushandlush.html')); // Render the HTML page
+    } else {
+      return res.status(400).json({ status: 'failed', message: 'Session mismatch' });
+    }
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ status: 'failed', error });
+  }
+});
 
 // Routes
 app.post('/upload', upload.single('image'), async (req, res) => {
@@ -186,12 +248,23 @@ function extractAnswer(output) {
   return answer.replace(/^Caption:\s*/i, '');
 }
 
-// New route for generating images for Flush and Lush
+// Updated route for image generation
 app.post('/generate-images-flush-lush', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    const allImages = [];
+  const sessionToken = req.session.token;
+  const { prompt } = req.body;
 
+  if (!sessionToken) {
+    return res.status(401).json({ error: 'No token found in session' });
+  }
+
+  try {
+    const tokenResult = await db.query('SELECT * FROM tokens WHERE token = $1 AND used = FALSE', [sessionToken]);
+    if (tokenResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or used token' });
+    }
+
+    // Proceed with image generation
+    const allImages = [];
     for (let i = 0; i < 7; i++) {
       const input = {
         prompt: prompt,
@@ -208,12 +281,21 @@ app.post('/generate-images-flush-lush', async (req, res) => {
       allImages.push(...output);
     }
 
+    // Mark token as used
+    await db.query('UPDATE tokens SET used = TRUE WHERE token = $1', [sessionToken]);
+    
+    // Remove token from session
+    delete req.session.token;
+
+    // Return the generated images
     res.json({ output: allImages });
   } catch (error) {
     console.error('Error in /generate-images-flush-lush:', error);
     res.status(500).json({ error: `An error occurred while generating images: ${error.message}` });
   }
 });
+
+
 
 
 app.post('/process-image-3d-figure', upload.single('image'), async (req, res) => {
@@ -320,9 +402,7 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
   }
 });
 
-app.post('/create-checkout-session', createCheckoutSession);
-app.get('/verify-payment', verifyPayment);
-app.post('/webhook', bodyParser.raw({ type: 'application/json' }), handleWebhook);
+
 
 // Example route to insert data into the 'payments' table
 app.post('/add-payment', async (req, res) => {
@@ -361,6 +441,6 @@ app.get('/test-db', async (req, res) => {
 });
 
 // Start the server
-app.listen(3003, () => {
-  console.log('Server is running on port 3003');
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

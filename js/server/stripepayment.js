@@ -1,6 +1,11 @@
 // stripepayments.js
 
+import { v4 as uuidv4 } from 'uuid'; // Import uuidv4
+import db from './db.js'; // Ensure this path is correct
+import dotenv from 'dotenv';
 import Stripe from 'stripe';
+
+dotenv.config();
 
 let stripe;
 
@@ -32,7 +37,7 @@ const styles = {
   },
 };
 
-export async function createCheckoutSession(req, res) {
+async function createCheckoutSession(req, res) {
   try {
     const { style } = req.body;
     const selectedStyle = styles[style];
@@ -57,11 +62,15 @@ export async function createCheckoutSession(req, res) {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `http://localhost:3003${selectedStyle.successPath}?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `http://localhost:3003/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: 'http://localhost:3003/cancel.html',
     });
 
     console.log('Checkout session created:', session.id);
+
+    // Store session ID for later use
+    await db.query('INSERT INTO payment_sessions (session_id, isgenerated) VALUES ($1, $2)', [session.id, false]);
+
     res.json({ url: session.url });
   } catch (error) {
     console.error('Error creating Checkout Session:', error);
@@ -69,42 +78,73 @@ export async function createCheckoutSession(req, res) {
   }
 }
 
-export async function verifyPayment(req, res) {
-  console.log('Entering verifyPayment function');
-  const DEV_MODE = process.env.NODE_ENV === 'development';
-  console.log('DEV_MODE:', DEV_MODE);
-
-  if (DEV_MODE) {
-    console.log('Development mode: Returning success');
-    return res.json({ payment_status: 'paid' });
-  }
-
+async function handlePaymentSuccess(req, res) {
   const sessionId = req.query.session_id;
-  console.log('Session ID:', sessionId);
-
-  if (!sessionId) {
-    console.error('No session ID provided');
-    return res.status(400).json({ error: 'No session ID provided' });
-  }
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    console.log('Retrieved session:', session);
 
     if (session.payment_status === 'paid') {
-      console.log('Payment status is paid, returning success');
-      res.json({ payment_status: 'paid' });
+      // Store user information
+      let userId;
+      try {
+        const userResult = await db.query(
+          `INSERT INTO users (username, email) 
+           VALUES ($1, $2) 
+           ON CONFLICT (email) DO UPDATE 
+           SET username = EXCLUDED.username 
+           RETURNING id`,
+          [session.customer_details.name, session.customer_details.email]
+        );
+        userId = userResult.rows[0].id;
+      } catch (dbError) {
+        console.error('Error inserting/updating user:', dbError);
+        // If insert/update fails, try to fetch the user by email
+        const userResult = await db.query(
+          'SELECT id FROM users WHERE email = $1',
+          [session.customer_details.email]
+        );
+        if (userResult.rows.length > 0) {
+          userId = userResult.rows[0].id;
+        } else {
+          throw new Error('Unable to insert or retrieve user');
+        }
+      }
+
+      // Generate token
+      const token = uuidv4();
+
+      // Store token in database
+      await db.query(
+        'INSERT INTO tokens (user_id, token, used) VALUES ($1, $2, $3)',
+        [userId, token, false]
+      );
+
+      // Store token in session
+      req.session.token = token;
+
+      // Update payment session with user ID
+      await db.query(
+        'UPDATE payment_sessions SET user_id = $1 WHERE session_id = $2',
+        [userId, sessionId]
+      );
+
+      console.log('User information stored, token generated, and payment session updated');
+
+      // Redirect to the appropriate HTML page based on the style
+      const style = session.metadata.style || 'flushandlush'; // Default to 'flush-and-lush' if style is not set
+      res.redirect(`/${style}.html?session_id=${sessionId}`);
     } else {
-      console.log('Payment not completed. Status:', session.payment_status);
-      res.json({ payment_status: session.payment_status });
+      res.status(400).json({ error: 'Payment not successful' });
     }
   } catch (error) {
-    console.error('Error verifying payment:', error);
-    res.status(500).json({ error: 'An error occurred while verifying the payment.' });
+    console.error('Error handling payment success:', error);
+    res.status(500).json({ error: 'An error occurred while processing the payment.' });
   }
 }
 
-export function handleWebhook(req, res) {
+async function handleWebhook(req, res) {
+  console.log('Webhook received');
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -112,19 +152,49 @@ export function handleWebhook(req, res) {
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    console.log('Event constructed successfully:', event.type);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      console.log('Payment was successful!', session);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}`);
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    console.log('Payment was successful! Session details:', JSON.stringify(session, null, 2));
+
+    try {
+      // Insert user data
+      const userResult = await db.query(
+        `INSERT INTO users (name, email)
+         VALUES ($1, $2)
+         ON CONFLICT (email) DO UPDATE
+         SET name = EXCLUDED.name
+         RETURNING id`,
+        [
+          session.customer_details.name,
+          session.customer_details.email
+        ]
+      );
+      
+      console.log('User data inserted/updated. Result:', userResult.rows[0]);
+
+      const userId = userResult.rows[0].id;
+
+      // Insert payment session
+      const sessionResult = await db.query(
+        'INSERT INTO payment_sessions (session_id, user_id, isgenerated) VALUES ($1, $2, $3) RETURNING *',
+        [session.id, userId, false]
+      );
+
+      console.log('Payment session inserted. Result:', sessionResult.rows[0]);
+    } catch (err) {
+      console.error('Error in database operations:', err);
+    }
+  } else {
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   res.json({ received: true });
 }
+
+export { createCheckoutSession, handlePaymentSuccess, handleWebhook };
