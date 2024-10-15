@@ -24,34 +24,31 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3003;
 
-
-
 // Initialize the Replicate client
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-// Enable development mode
-const DEV_MODE = process.env.NODE_ENV === 'development';
-
 // Middleware
-app.use(bodyParser.json());
-app.use(express.json()); // Parse JSON bodies
+app.use(bodyParser.json({ limit: '20mb' }));
+app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
+app.use(express.json({ limit: '20mb' }));
 
-// Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'someSecretKey',
   resave: false,
   saveUninitialized: true,
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production', 
+  cookie: {
+    secure: false, // Set to false during development if not using HTTPS
+    httpOnly: true, // Prevent JavaScript from accessing the cookie
+    sameSite: 'lax', // Allow the cookie to be sent more easily between different pages
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
-
 // New route for token validation
 app.get('/validate-token', async (req, res) => {
+  console.log('Session token:', req.session.token);
   const sessionToken = req.session.token;
   if (!sessionToken) {
     return res.status(401).json({ error: 'No token found in session' });
@@ -66,6 +63,39 @@ app.get('/validate-token', async (req, res) => {
   } catch (error) {
     console.error('Error validating token:', error);
     res.status(500).json({ error: 'An error occurred while validating the token' });
+  }
+});
+
+// Serve flushandlush.html page after payment verification
+app.post('/verify-payment', async (req, res) => {
+  const { sessionId } = req.body;
+
+  try {
+    const storedSession = await db.query('SELECT * FROM payment_sessions WHERE session_id = $1', [sessionId]);
+
+    if (!storedSession.rows.length) {
+      return res.status(400).json({ status: 'failed', message: 'Session not found in database' });
+    }
+
+    const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
+
+    if (session.id === storedSession.rows[0].session_id && session.payment_status === 'paid') {
+      req.session.token = uuidv4();
+      await db.query('INSERT INTO tokens (token, used) VALUES ($1, $2)', [req.session.token, false]);
+
+      req.session.save((err) => {
+        if (err) {
+          console.error('Error saving session:', err);
+          return res.status(500).json({ error: 'Failed to save session' });
+        }
+        res.json({ status: 'success', message: 'Payment verified', token: req.session.token });
+      });
+    } else {
+      return res.status(400).json({ status: 'failed', message: 'Session mismatch or payment not verified' });
+    }
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ status: 'failed', error: error.message });
   }
 });
 
@@ -101,7 +131,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10MB
+});
 
 // Serve uploaded files statically
 app.use('/uploads', express.static('uploads'));
@@ -111,32 +144,6 @@ app.post('/create-checkout-session', createCheckoutSession);
 app.get('/payment-success', handlePaymentSuccess);
 
 app.post('/webhook', handleWebhook);
-
-app.post('/verify-payment', async (req, res) => {
-  const { sessionId } = req.body; // Get session ID from request body
-
-  try {
-    // Step 1: Retrieve the session stored in your database (based on sessionId)
-    const storedSession = await db.query('SELECT * FROM payment_sessions WHERE session_id = $1', [sessionId]);
-
-    if (!storedSession.rows.length) {
-      return res.status(400).json({ status: 'failed', message: 'Session not found in database' });
-    }
-
-    // Step 2: Verify the payment session with Stripe
-    const session = await stripeInstance.checkout.sessions.retrieve(sessionId);
-
-    // Step 3: If session IDs match, render the flushandlush.html page
-    if (session.id === storedSession.rows[0].session_id) {
-      return res.sendFile(path.join(__dirname, 'views', 'flushandlush.html')); // Render the HTML page
-    } else {
-      return res.status(400).json({ status: 'failed', message: 'Session mismatch' });
-    }
-  } catch (error) {
-    console.error('Error verifying payment:', error);
-    res.status(500).json({ status: 'failed', error });
-  }
-});
 
 // Routes
 app.post('/upload', upload.single('image'), async (req, res) => {
@@ -185,7 +192,6 @@ app.post('/process-image', upload.single('image'), async (req, res) => {
     }
   }
 });
-
 
 app.post('/process-image-flush-lush', upload.single('image'), async (req, res) => {
   try {
@@ -243,7 +249,7 @@ function extractAnswer(output) {
   } else {
     answer = 'Unknown';
   }
-  
+
   // Remove "Caption: " if present
   return answer.replace(/^Caption:\s*/i, '');
 }
@@ -283,7 +289,7 @@ app.post('/generate-images-flush-lush', async (req, res) => {
 
     // Mark token as used
     await db.query('UPDATE tokens SET used = TRUE WHERE token = $1', [sessionToken]);
-    
+
     // Remove token from session
     delete req.session.token;
 
@@ -294,9 +300,6 @@ app.post('/generate-images-flush-lush', async (req, res) => {
     res.status(500).json({ error: `An error occurred while generating images: ${error.message}` });
   }
 });
-
-
-
 
 app.post('/process-image-3d-figure', upload.single('image'), async (req, res) => {
   try {
@@ -401,46 +404,44 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
     res.status(500).json({ error: 'An error occurred while generating the images' });
   }
 });
-
-
-
-// Example route to insert data into the 'payments' table
-app.post('/add-payment', async (req, res) => {
-  const { userId, paymentIntentId, amount, currency } = req.body;
-
-  try {
-    const queryText = `INSERT INTO payments (user_id, payment_intent_id, amount, currency)
-                       VALUES ($1, $2, $3, $4) RETURNING *`;
-    const result = await db.query(queryText, [userId, paymentIntentId, amount, currency]);
-    res.json(result.rows[0]); // Return the inserted row
-  } catch (err) {
-    console.error('Error inserting payment:', err);
-    res.status(500).json({ error: 'Failed to insert payment' });
-  }
-});
-
-// Example route to retrieve all payments
-app.get('/payments', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM payments');
-    res.json(result.rows); // Return all rows in the 'payments' table
-  } catch (err) {
-    console.error('Error retrieving payments:', err);
-    res.status(500).json({ error: 'Failed to retrieve payments' });
-  }
-});
-
-app.get('/test-db', async (req, res) => {
-  try {
-    const result = await db.query('SELECT NOW()'); // Query the current time
-    res.json(result.rows[0]); // Return the result
-  } catch (err) {
-    console.error('Error connecting to database:', err);
-    res.status(500).send('Database connection failed');
-  }
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+  
+  // Example route to insert data into the 'payments' table
+  app.post('/add-payment', async (req, res) => {
+    const { userId, paymentIntentId, amount, currency } = req.body;
+  
+    try {
+      const queryText = `INSERT INTO payments (user_id, payment_intent_id, amount, currency)
+                         VALUES ($1, $2, $3, $4) RETURNING *`;
+      const result = await db.query(queryText, [userId, paymentIntentId, amount, currency]);
+      res.json(result.rows[0]); // Return the inserted row
+    } catch (err) {
+      console.error('Error inserting payment:', err);
+      res.status(500).json({ error: 'Failed to insert payment' });
+    }
+  });
+  
+  // Example route to retrieve all payments
+  app.get('/payments', async (req, res) => {
+    try {
+      const result = await db.query('SELECT * FROM payments');
+      res.json(result.rows); // Return all rows in the 'payments' table
+    } catch (err) {
+      console.error('Error retrieving payments:', err);
+      res.status(500).json({ error: 'Failed to retrieve payments' });
+    }
+  });
+  
+  app.get('/test-db', async (req, res) => {
+    try {
+      const result = await db.query('SELECT NOW()'); // Query the current time
+      res.json(result.rows[0]); // Return the result
+    } catch (err) {
+      console.error('Error connecting to database:', err);
+      res.status(500).send('Database connection failed');
+    }
+  });
+  
+  // Start the server
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });

@@ -20,7 +20,7 @@ document.onkeydown = function(e) {
   }
 };
 
-// Detect DevTools
+/*// Detect DevTools
 function detectDevTools() {
   const widthThreshold = window.outerWidth - window.innerWidth > 160;
   const heightThreshold = window.outerHeight - window.innerHeight > 160;
@@ -30,3 +30,4 @@ function detectDevTools() {
 }
 
 setInterval(detectDevTools, 1000);
+*/

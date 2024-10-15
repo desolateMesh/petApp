@@ -94,7 +94,10 @@ const ImageDisplayHandler = {
     const images = document.querySelectorAll('.grid-item img');
     images.forEach((img, index) => {
       img.setAttribute('data-index', index);
-      img.addEventListener('click', () => this.showImage(img.src, img.alt));
+      img.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.showImage(img.src, img.alt);
+      });
     });
   },
 
@@ -109,44 +112,34 @@ const ImageDisplayHandler = {
     const closeBtn = document.createElement('span');
     closeBtn.innerHTML = '&times;';
     closeBtn.className = 'close-btn';
-    closeBtn.addEventListener('click', () => this.closeOverlay(overlay));
+    closeBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.closeOverlay(overlay);
+    });
     
     overlay.appendChild(imgElement);
     overlay.appendChild(closeBtn);
     document.body.appendChild(overlay);
 
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) {
+        event.preventDefault();
         this.closeOverlay(overlay);
       }
     });
   },
 
   closeOverlay(overlay) {
-    if (overlay) {
-      overlay.remove();
+    if (overlay && overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
     }
   }
 };
 
-function initializeHoverImages() {
-  const images = document.querySelectorAll('.grid-item img');
-  images.forEach((img) => {
-    const hoverImage = img.getAttribute('data-hover-image');
-    if (hoverImage) {
-      img.addEventListener('mouseenter', () => {
-        img.setAttribute('data-original-src', img.src);
-        img.src = hoverImage;
-      });
-      img.addEventListener('mouseleave', () => {
-        const originalSrc = img.getAttribute('data-original-src');
-        if (originalSrc) {
-          img.src = originalSrc;
-        }
-      });
-    }
-  });
-}
+// Make sure to call the init function when the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  ImageDisplayHandler.init();
+});
 
 // Export the ImageDisplayHandler if using ES modules
 export { ImageDisplayHandler };
