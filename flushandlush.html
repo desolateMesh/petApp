@@ -11,25 +11,6 @@
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
-  <!-- Header and navigation -->
-  <div class="header">
-    <div class="logo">PET GLAM</div>
-    <div class="hamburger" id="hamburger">
-      <i class="fas fa-bars"></i>
-    </div>
-    <nav class="nav" id="nav">
-      <ul>
-        <li><a href="#home">Home</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#flush-and-lush">Flush and Lush</a></li>
-        <li><a href="#3d-figure">Generate a 3D Figure</a></li>
-        <li><a href="#select-a-style">Select A Style</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </div>
-</head>
-<body>
   <div class="container">
     <h1>Welcome to the Flush and Lush Generator</h1>
     <p>To start, upload a photo of your pet.</p>
@@ -79,16 +60,33 @@
           console.log('Token is valid, initializing upload form');
           initializeUploadForm();
         } else {
-          console.log('Token is invalid, redirecting to error page');
-          window.location.href = '/payment-error.html';
+          console.log('Token is invalid, opening payment page in new window');
+          window.open('/payment.html', 'paymentWindow', 'width=800,height=600');
         }
       } catch (error) {
         console.error('Error validating token:', error);
-        window.location.href = '/payment-error.html';
+        window.open('/payment-error.html', 'paymentErrorWindow', 'width=800,height=600');
       }
     }
-
-    // Replace the existing checkPaymentStatus function with this new one
+  
+    // Function to handle the message from the payment success window
+    function handlePaymentSuccessMessage(event) {
+      // Ensure the message is from your domain
+      if (event.origin !== window.location.origin) {
+        console.warn('Received message from unknown origin:', event.origin);
+        return;
+      }
+      if (event.data === 'paymentSuccess') {
+        console.log('Payment successful, initializing upload form');
+        initializeUploadForm();
+      }
+    }
+  
+    // Add event listener for messages from the payment success window
+    window.addEventListener('message', handlePaymentSuccessMessage);
+  
+    // Call the function to check token and payment status
+    console.log('Page loaded, calling checkTokenAndPaymentStatus');
     checkTokenAndPaymentStatus();
   
     function initializeUploadForm() {
@@ -101,7 +99,7 @@
         console.error('Upload form not found');
       }
     }
-
+  
     function updateCharCount() {
       const promptText = document.getElementById('promptText');
       const charCount = document.getElementById('charCount');
@@ -110,44 +108,44 @@
         charCount.textContent = `${count} / 500`;
       }
     }
-
+  
     async function handleImageUpload(e) {
       e.preventDefault();
       console.log('Handling image upload for Flush and Lush');
-
+  
       const formData = new FormData(e.target);
       const spinner = document.getElementById('spinner');
       const errorMessage = document.getElementById('errorMessage');
-
+  
       spinner.style.display = 'block';
       errorMessage.style.display = 'none';
-
+  
       try {
         const response = await fetch('/process-image-flush-lush', {
           method: 'POST',
           body: formData
         });
-
+  
         if (!response.ok) {
           throw new Error('Image processing failed');
         }
-
+  
         const data = await response.json();
         console.log('Image processing result:', data);
-
+  
         // Display the generated prompt
         const promptArea = document.getElementById('promptArea');
         const promptText = document.getElementById('promptText');
         promptArea.style.display = 'block';
         promptText.value = data.prompt;
-
+  
         // Update character count
         updateCharCount();
-
+  
         // Set up the generate button
         const generateButton = document.getElementById('generateButton');
         generateButton.addEventListener('click', generateImagesFlushLush);
-
+  
       } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = 'An error occurred while processing the image. Please try again.';
@@ -156,15 +154,7 @@
         spinner.style.display = 'none';
       }
     }
-
-    // Function to get session_id from URL
-    function getSessionIdFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('session_id');
-    }
-
-    const session_id = getSessionIdFromURL();
-
+  
     async function generateImagesFlushLush() {
       console.log('Generating images for Flush and Lush');
   
@@ -174,7 +164,7 @@
   
       spinner.style.display = 'block';
       errorMessage.style.display = 'none';
-
+  
       try {
         const response = await fetch('/generate-images-flush-lush', {
           method: 'POST',
@@ -183,20 +173,20 @@
           },
           body: JSON.stringify({ prompt: promptText.value })
         });
-
+  
         if (!response.ok) {
           throw new Error('Image generation failed');
         }
-
+  
         const data = await response.json();
         console.log('Generated images:', data);
-
+  
         // Display the generated images
         displayGeneratedImages(data.output);
-
+  
         // Disable the generate button after successful generation
         document.getElementById('generateButton').disabled = true;
-
+  
       } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = 'An error occurred while generating images. Please try again.';
@@ -205,24 +195,24 @@
         spinner.style.display = 'none';
       }
     }
-
+  
     function displayGeneratedImages(imageUrls) {
       const generatedImagesContainer = document.getElementById('generatedImages');
       generatedImagesContainer.innerHTML = '';  // Clear previous images
-
+  
       imageUrls.forEach((url, index) => {
         const imageElement = document.createElement('div');
         imageElement.classList.add('grid-item');
-
+  
         imageElement.innerHTML = `
           <img src="${url}" alt="Generated Image ${index + 1}" />
           <button onclick="downloadImage('${url}', 'generated-image-${index + 1}.png')">Download</button>
         `;
-
+  
         generatedImagesContainer.appendChild(imageElement);
       });
     }
-
+  
     function downloadImage(url, filename) {
       fetch(url)
         .then(response => response.blob())
@@ -239,12 +229,8 @@
           alert('Failed to download the image. Please try again.');
         });
     }
-
-    console.log('Page loaded, calling checkPaymentStatus');
-    checkPaymentStatus();
-  </script>
-  <script src="/js/server/security.js"></script>
-  <script>
+  
+    // Clear the paid session when the user leaves the page
     window.addEventListener('beforeunload', function (e) {
       fetch('/clear-paid-session', { method: 'POST' });
     });
