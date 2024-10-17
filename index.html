@@ -40,39 +40,58 @@
   <div class="home" id="home">
     <br><br><br>
     <div class="home-content">
-      <div class="title">Welcome to Pet Glam</div>
-      <div class="text" style="max-width: 1000px; margin: 0 auto; line-height: 1.6; font-size: 16px;">
-        <h2 style="color: #00A8CC; text-align: left; margin-bottom: 20px;">How it works</h2>
-        
-        <p>Pet Glam helps with the challenge of capturing a great image of your pet:</p>
-        
-        <ul style="list-style-type: none; padding-left: 20px;">
-          <li>✨ We help create the perfect image from your uploaded photo.✨</li>
-          <li>🎨 Using advanced models, we generate new, refined versions of your pet's image.🎨</li>
-        </ul>
-      
-        <h3 style="color: #00A8CC; margin-top: 20px;">Prices:</h3>
-        
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
-            <h4 style="margin: 0;">Flush and Lush</h4>
-            <p>28 images @ $X.XX</p>
+      <h1 class="title">Welcome to Pet Glam</h1>
+      <div class="content-wrapper">
+        <section class="how-it-works">
+          <h2>How It Works</h2>
+          <p>Pet Glam transforms your pet photos into stunning artwork:</p>
+          <ul>
+            <li>✨ Upload your pet's photo</li>
+            <li>🎨 Choose your preferred style</li>
+            <li>🖼️ Receive multiple refined versions of your pet's image</li>
+          </ul>
+        </section>
+        <br>
+        <section class="pricing">
+          <h2>Our Services</h2>
+          <div class="price-cards">
+            <div class="price-card">
+              <h3>Flush and Lush</h3>
+              <p class="price">$15.00</p>
+              <p class="details">12 unique images</p>
+            </div>
+            <div class="price-card">
+              <h3>3D Figure</h3>
+              <p class="price">$12.00</p>
+              <p class="details">12 unique images</p>
+            </div>
+            <div class="price-card">
+              <h3>Realistic</h3>
+              <p class="price">$10.00</p>
+              <p class="details">8 unique images</p>
+            </div>
           </div>
-          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
-            <h4 style="margin: 0;">3D Figure</h4>
-            <p>28 images @ $X.XX</p>
-          </div>
-          <div style="flex: 1; padding: 10px; background-color: #f0f0f0; margin: 0 5px; border-radius: 5px;">
-            <h4 style="margin: 0;">Realistic</h4>
-            <p>16 images @ $X.XX</p>
-          </div>
-        </div>     
-        <p style="text-align: center; font-weight: bold;">How to Get Started:</p>
-        <ol style="padding-left: 20px;">
-          <li>Click on any of the "Buy" buttons for the style you like</li>
-          <li>Enter your payment information in the secure Stripe payment area</li>
-          <li>Once payment is verified, you'll be able to generate and download your new images</li>
-        </ol>
+        </section>
+        <br>
+        <section class="process">
+          <h2>How to Get Started</h2>
+          <ol>
+            <li>Select your desired style and click "Buy Now"</li>
+            <li>Complete the secure payment process via Stripe</li>
+            <li>After payment confirmation, upload your pet's photo</li>
+            <li>Generate and download your new, glamorous pet images</li>
+          </ol>
+        </section>
+        <br>
+        <section class="important-notes">
+          <h2>Important Information</h2>
+          <ul>
+            <li>We only store your name and email - no payment information is kept on our servers</li>
+            <li>Your information is never shared or sold</li>
+            <li>Do not close or refresh the page after image generation until you've downloaded your images</li>
+            <li>We cannot provide refunds for generated images that are lost due to closing or refreshing the page</li>
+          </ul>
+        </section>
       </div>
     </div>
   </div>
@@ -246,7 +265,7 @@
           <img src="/public/images/dog1lush1.png" alt="Flush & Lush" class="main-image gallery-trigger">
           <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
         </div>
-        <p>Flush&Lush: 28 images</p>
+        <p>Flush&Lush: 12 images</p>
         <button class="buy-button" data-style="flush-and-lush">Buy</button>
       </div>
       <div class="grid-item">
@@ -254,7 +273,7 @@
           <img src="/public/images/frenchie3Dfigure2.png" alt="3D Figure" class="main-image gallery-trigger">
           <img src="/public/images/frenchbulldogreal.png" alt="Real Dog" class="hover-image">
         </div>
-        <p>3D Figure: 28 images</p>
+        <p>3D Figure: 12 images</p>
         <button class="buy-button" data-style="3d-figure">Buy</button>
       </div>
       <div class="grid-item">
@@ -262,7 +281,7 @@
           <img src="/public/images/realistic.png" alt="Realistic" class="main-image gallery-trigger">
           <img src="/public/images/realdog1.png" alt="Real Dog" class="hover-image">
         </div>
-        <p>Realistic: 12 images</p>
+        <p>Realistic: 8 images</p>
         <button class="buy-button" data-style="realistic">Buy</button>
       </div>
       <div class="grid-item">
@@ -275,27 +294,26 @@
       </div>
     </div>
   </div>
-  
   <br>
 <div class="contact" id="contact">
   <h2>Contact</h2>
   <p>
-    If you have any questions or feedback, please feel free to contact us at COMING SOON.</p>
+    If you have any questions or feedback, please feel free to contact us at info@elevatedcloudworks.com</p>
   </p>
 </div>
 
  
-  <!-- Full-Screen Modal Overlay -->
+ <!-- Full-Screen Modal Overlay 
 <div id="flushandlush-modal" class="flushandlush-modal" role="dialog" aria-modal="true" aria-labelledby="flushandlush-modal-title">
   <div class="flushandlush-modal-content">
-    <!-- Close button -->
+     Close button 
     <button id="flushandlush-close-button" class="flushandlush-close-button" aria-label="Close">&times;</button>
-    <!-- flushandlush content -->
+     flushandlush content 
     <div id="flushandlush-content" tabindex="0">
-      <!-- Content will be loaded here -->
+       Content will be loaded here 
     </div>
   </div>
-</div>
+</div> -->
 
 
   <script src="js/client/main.js" type="module"></script>

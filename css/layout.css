@@ -44,3 +44,55 @@
   margin-top: 20px;
   line-height: 1.5; /* Optional: adds some spacing between lines */
 }
+/* Add to layout.css */
+
+.home-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.how-it-works, .our-services, .how-to-start {
+  margin-bottom: 40px;
+}
+
+.steps-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.step {
+  flex-basis: calc(33.333% - 20px);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.service-cards {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.service-card {
+  flex-basis: calc(33.333% - 20px);
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.how-to-start ol {
+  padding-left: 20px;
+}
+
+.how-to-start li {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .step, .service-card {
+    flex-basis: 100%;
+  }
+}

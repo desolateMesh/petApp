@@ -17,7 +17,7 @@ dotenv.config();
 let stripe;
 
 export function configureStripe() {
-  stripe = new Stripe(process.env.STRIPE_SECRET_KEY_TEST, {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2023-08-16',
   });
   return stripe;
@@ -27,19 +27,19 @@ const styles = {
   'flush-and-lush': {
     name: 'Flush & Lush',
     description: 'A plush representation of your dog.',
-    price: 599,
+    price: 1500,
     successPath: '/flushandlush.html',
   },
   '3d-figure': {
     name: '3D Figure',
     description: 'A 3D printed model of your dog.',
-    price: 899,
+    price: 1200,
     successPath: '/3dfiguregeneration.html',
   },
   'realistic': {
     name: 'Realistic',
     description: 'A realistic portrait of your dog.',
-    price: 499,
+    price: 1000,
     successPath: '/realistic.html',
   },
 };

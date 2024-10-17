@@ -36,6 +36,7 @@
   opacity: 0;
   transition: opacity 0.3s, background-color 0.3s;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
 }
 
 .circle-button:hover {
@@ -256,4 +257,62 @@ textarea {
   color: white;
   font-size: 40px;
   cursor: pointer;
+}
+/* Add to components.css */
+
+.step i {
+  font-size: 2rem;
+  color: #00A8CC;
+  margin-bottom: 10px;
+}
+
+.service-card h3 {
+  color: #00A8CC;
+  margin-bottom: 10px;
+}
+
+.service-card .price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.service-card .details {
+  margin-bottom: 15px;
+}
+
+.buy-btn {
+  background-color: #00A8CC;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.buy-btn:hover {
+  background-color: #008CAB;
+}
+
+.important-notes {
+  background-color: #ffe6e6;  /* This is the light red you're currently using */
+  padding: 20px;
+  border-radius: 5px;  /* Matching the border-radius in your current design */
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.important-notes h2 {
+  color: #333;  /* Dark color for better readability */
+  margin-bottom: 15px;
+}
+
+.important-notes ul {
+  list-style-type: disc;  /* Maintains the bullet points */
+  padding-left: 20px;  /* Indents the list items */
+}
+
+.important-notes li {
+  margin-bottom: 10px;
 }
