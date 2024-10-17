@@ -95,13 +95,12 @@ async function handlePaymentSuccess(req, res) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     console.log('Session retrieved:', session);
 
-    await db.query(
-      'UPDATE payment_sessions SET token = $1, processed = $2 WHERE session_id = $3',
-      [token, true, sessionId]
+    // If the session is already processed, retrieve the token and redirect
+    const sessionResult = await db.query(
+      'SELECT processed, token FROM payment_sessions WHERE session_id = $1',
+      [sessionId]
     );
-    
 
-    // If the session is already processed, redirect to the success page
     if (sessionResult.rows.length > 0 && sessionResult.rows[0].processed) {
       console.log('Session already processed.');
       const existingToken = sessionResult.rows[0].token;
@@ -111,6 +110,10 @@ async function handlePaymentSuccess(req, res) {
     // If the payment was successful
     if (session.payment_status === 'paid') {
       console.log('Payment was successful for session:', sessionId);
+
+      // Generate a new token
+      const token = uuidv4(); // Moved the token generation here
+      console.log('Generated token:', token);
 
       // Insert or update the user in the database
       let userId;
@@ -128,10 +131,6 @@ async function handlePaymentSuccess(req, res) {
         console.error('Error inserting/updating user:', dbError);
         return res.status(500).send('Error inserting/updating user');
       }
-
-      // Generate a new token
-      const token = uuidv4();
-      console.log('Generated token:', token);
 
       // Update the payment session with the new token and set it as processed
       try {
