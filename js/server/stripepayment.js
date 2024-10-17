@@ -69,8 +69,8 @@ async function createCheckoutSession(req, res) {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `http://localhost:3003/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'http://your-domain.com/payment-error.html',
+      success_url: `https://petglamappai.com/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: 'https://petglamappai.com/payment-error.html',
       metadata: {
         style,
       },
