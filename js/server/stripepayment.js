@@ -69,8 +69,8 @@ async function createCheckoutSession(req, res) {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `https://petglamappai.com/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'https://petglamappai.com/payment-error.html',
+      success_url: 'http://localhost:3003/payment-success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'http://localhost:3003/payment-error.html',
       metadata: {
         style,
       },
@@ -95,29 +95,15 @@ async function handlePaymentSuccess(req, res) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     console.log('Session retrieved:', session);
 
-    // If the session is already processed, retrieve the token and redirect
-    const sessionResult = await db.query(
-      'SELECT processed, token FROM payment_sessions WHERE session_id = $1',
-      [sessionId]
-    );
-
-    if (sessionResult.rows.length > 0 && sessionResult.rows[0].processed) {
-      console.log('Session already processed.');
-      const existingToken = sessionResult.rows[0].token;
-      return res.redirect(`/flushandlush.html?token=${existingToken}`);
-    }
-
-    // If the payment was successful
     if (session.payment_status === 'paid') {
       console.log('Payment was successful for session:', sessionId);
+      console.log('Session customer details:', session.customer_details);
 
-      // Generate a new token
-      const token = uuidv4(); // Moved the token generation here
-      console.log('Generated token:', token);
-
-      // Insert or update the user in the database
+      // Store user information
       let userId;
       try {
+        console.log('Attempting to insert/update user with email:', session.customer_details.email);
+
         const userResult = await db.query(
           `INSERT INTO users (username, email)
            VALUES ($1, $2)
@@ -127,32 +113,63 @@ async function handlePaymentSuccess(req, res) {
           [session.customer_details.name, session.customer_details.email]
         );
         userId = userResult.rows[0].id;
+        console.log('User inserted/updated with ID:', userId);
       } catch (dbError) {
         console.error('Error inserting/updating user:', dbError);
-        return res.status(500).send('Error inserting/updating user');
-      }
 
-      // Update the payment session with the new token and set it as processed
-      try {
-        await db.query(
-          'UPDATE payment_sessions SET token = $1, processed = true WHERE session_id = $2',
-          [token, sessionId]
+        // If insert/update fails, try to fetch the user by email
+        const userResult = await db.query(
+          'SELECT id FROM users WHERE email = $1',
+          [session.customer_details.email]
         );
-        console.log('Payment session updated in database.');
-      } catch (dbError) {
-        console.error('Error updating payment session:', dbError);
-        return res.status(500).send('Error updating payment session');
+        if (userResult.rows.length > 0) {
+          userId = userResult.rows[0].id;
+          console.log('User found with ID:', userId);
+        } else {
+          throw new Error('Unable to insert or retrieve user');
+        }
       }
 
-      // Redirect to the success page with the token
-      return res.redirect(`/flushandlush.html?token=${token}`);
+      // Generate token
+      const token = uuidv4();
+      console.log('Generated token:', token);
+
+      // Store token in database
+      await db.query(
+        'INSERT INTO tokens (user_id, token, used) VALUES ($1, $2, $3)',
+        [userId, token, false]
+      );
+      console.log('Token stored in database for user:', userId);
+
+      // Store token in session
+      req.session.token = token;
+      console.log('Token stored in session');
+
+      // Update payment session with user ID
+      await db.query(
+        'UPDATE payment_sessions SET user_id = $1 WHERE session_id = $2',
+        [userId, sessionId]
+      );
+      console.log('Payment session updated with user ID:', userId);
+
+      // Define selectedStyle
+      const style = session.metadata.style || 'flush-and-lush';
+      const selectedStyle = styles[style];
+
+      if (!selectedStyle) {
+        console.error(`Invalid style: ${style}`);
+        return res.status(400).send('Invalid style selected.');
+      }
+
+      console.log('Redirecting to style page:', selectedStyle.successPath);
+      res.redirect(selectedStyle.successPath);
     } else {
       console.log('Payment not successful for session:', sessionId);
-      return res.redirect('/payment-error.html');
+      res.status(400).json({ error: 'Payment not successful' });
     }
   } catch (error) {
     console.error('Error handling payment success:', error);
-    return res.redirect('/payment-error.html');
+    res.status(500).json({ error: 'An error occurred while processing the payment.' });
   }
 }
 

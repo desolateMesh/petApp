@@ -323,7 +323,7 @@ app.post('/generate-3d-figure', async (req, res) => {
 
     // Assuming each call to generateImages generates 4 images
     // Make 7 calls to get a total of 28 images
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 1; i++) {
       const images = await generateImages(prompt);
       if (images && images.length > 0) {
         allImages.push(...images);
@@ -373,7 +373,7 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
     const allImages = [];
 
     // Make 7 API calls to generate a total of 28 images
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 1; i++) {
       const output = await replicate.run(
         "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
         { input }
