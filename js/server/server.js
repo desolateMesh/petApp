@@ -271,7 +271,7 @@ app.post('/generate-images-flush-lush', async (req, res) => {
 
     // Proceed with image generation
     const allImages = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 1; i++) {
       const input = {
         prompt: prompt,
         output_quality: 80,
