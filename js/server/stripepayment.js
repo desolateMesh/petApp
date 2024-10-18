@@ -90,77 +90,75 @@ async function createCheckoutSession(req, res) {
 
 async function handlePaymentSuccess(req, res) {
   const sessionId = req.query.session_id;
-
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     console.log('Session retrieved:', session);
-
     if (session.payment_status === 'paid') {
       console.log('Payment was successful for session:', sessionId);
       console.log('Session customer details:', session.customer_details);
-
       // Store user information
       let userId;
       try {
         console.log('Attempting to insert/update user with email:', session.customer_details.email);
-
-        const userResult = await db.query(
-          `INSERT INTO users (username, email)
-           VALUES ($1, $2)
-           ON CONFLICT (email) DO UPDATE
-           SET username = EXCLUDED.username
-           RETURNING id`,
-          [session.customer_details.name, session.customer_details.email]
-        );
-        userId = userResult.rows[0].id;
-        console.log('User inserted/updated with ID:', userId);
-      } catch (dbError) {
-        console.error('Error inserting/updating user:', dbError);
-
-        // If insert/update fails, try to fetch the user by email
-        const userResult = await db.query(
+        
+        // First, try to find the user by email
+        const existingUserResult = await db.query(
           'SELECT id FROM users WHERE email = $1',
           [session.customer_details.email]
         );
-        if (userResult.rows.length > 0) {
-          userId = userResult.rows[0].id;
-          console.log('User found with ID:', userId);
-        } else {
-          throw new Error('Unable to insert or retrieve user');
-        }
-      }
 
+        if (existingUserResult.rows.length > 0) {
+          // User exists, update the username
+          userId = existingUserResult.rows[0].id;
+          await db.query(
+            'UPDATE users SET username = $1 WHERE id = $2',
+            [session.customer_details.name, userId]
+          );
+          console.log('User updated with ID:', userId);
+        } else {
+          // User doesn't exist, insert new user
+          const newUserResult = await db.query(
+            'INSERT INTO users (username, email) VALUES ($1, $2) RETURNING id',
+            [session.customer_details.name, session.customer_details.email]
+          );
+          userId = newUserResult.rows[0].id;
+          console.log('New user inserted with ID:', userId);
+        }
+      } catch (dbError) {
+        console.error('Error inserting/updating user:', dbError);
+        throw new Error('Unable to insert or update user');
+      }
+      
       // Generate token
       const token = uuidv4();
       console.log('Generated token:', token);
-
+      
       // Store token in database
       await db.query(
         'INSERT INTO tokens (user_id, token, used) VALUES ($1, $2, $3)',
         [userId, token, false]
       );
       console.log('Token stored in database for user:', userId);
-
+      
       // Store token in session
       req.session.token = token;
       console.log('Token stored in session');
-
+      
       // Update payment session with user ID
       await db.query(
         'UPDATE payment_sessions SET user_id = $1 WHERE session_id = $2',
         [userId, sessionId]
       );
       console.log('Payment session updated with user ID:', userId);
-
+      
       // Define selectedStyle
       const style = session.metadata.style || 'flush-and-lush';
       const selectedStyle = styles[style];
-
       if (!selectedStyle) {
         console.error(`Invalid style: ${style}`);
         return res.status(400).send('Invalid style selected.');
       }
-
+      
       console.log('Redirecting to style page:', selectedStyle.successPath);
       res.redirect(selectedStyle.successPath);
     } else {
@@ -172,7 +170,6 @@ async function handlePaymentSuccess(req, res) {
     res.status(500).json({ error: 'An error occurred while processing the payment.' });
   }
 }
-
 
 async function handleWebhook(req, res) {
   console.log('Webhook received');
