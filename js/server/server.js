@@ -316,13 +316,13 @@ app.post('/process-image-3d-figure', upload.single('image'), async (req, res) =>
   }
 });
 
-app.post('/generate-3d-figure', async (req, res) => {
+app.post('/generate-3d-figure', validateToken, async (req, res) => {
+  const sessionToken = req.session.token;
   try {
     const { prompt } = req.body;
     const allImages = [];
 
-    // Assuming each call to generateImages generates 4 images
-    // Make 7 calls to get a total of 28 images
+    // Generate images (your existing code here)
     for (let i = 0; i < 1; i++) {
       const images = await generateImages(prompt);
       if (images && images.length > 0) {
@@ -332,7 +332,27 @@ app.post('/generate-3d-figure', async (req, res) => {
       }
     }
 
-    res.json({ image_urls: allImages });
+    if (allImages.length === 0) {
+      throw new Error('Failed to generate any images');
+    }
+
+    // Mark token as used
+    await db.query('UPDATE tokens SET used = TRUE WHERE token = $1', [sessionToken]);
+
+    // Remove token from session
+    delete req.session.token;
+
+    // Save the session to ensure the token removal is persisted
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error saving session:', err);
+        return res.status(500).json({ error: 'Failed to update session' });
+      }
+
+      // Return generated images
+      res.json({ image_urls: allImages });
+    });
+
   } catch (error) {
     console.error('Error during /generate-3d-figure:', error);
     res.status(500).json({ error: error.message });
