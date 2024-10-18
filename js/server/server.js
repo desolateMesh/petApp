@@ -316,7 +316,7 @@ app.post('/process-image-3d-figure', upload.single('image'), async (req, res) =>
   }
 });
 
-app.post('/generate-3d-figure', validateToken, async (req, res) => {
+app.post('/generate-3d-figure', checkTokenValidity, async (req, res) => {
   const sessionToken = req.session.token;
   try {
     const { prompt } = req.body;
