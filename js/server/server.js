@@ -368,9 +368,18 @@ app.post('/generate-3d-figure', async (req, res) => {
   }
 });
 
-// New route for generating realistic images
 app.post('/generate-realistic', upload.single('image'), async (req, res) => {
+  const sessionToken = req.session.token;
+  if (!sessionToken) {
+    return res.status(401).json({ error: 'No token found in session' });
+  }
+
   try {
+    const tokenResult = await db.query('SELECT * FROM tokens WHERE token = $1 AND used = FALSE', [sessionToken]);
+    if (tokenResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or used token' });
+    }
+
     const { prompt } = req.body;
     const imageFile = req.file;
 
@@ -401,29 +410,42 @@ app.post('/generate-realistic', upload.single('image'), async (req, res) => {
 
     const allImages = [];
 
-    // Make 7 API calls to generate a total of 28 images
-    for (let i = 0; i < 1; i++) {
-      const output = await replicate.run(
-        "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
-        { input }
-      );
+    // Make 1 API call to generate a total of 4 images
+    const output = await replicate.run(
+      "desolatemesh/dog:0a4593380a7fbf86208b1b1dd78589d1ef892dd3a5c0fe39b62cae5b958268fb",
+      { input }
+    );
 
-      console.log(`Received output ${i + 1} from Replicate API:`, JSON.stringify(output, null, 2));
+    console.log(`Received output from Replicate API:`, JSON.stringify(output, null, 2));
 
-      if (output && output.length > 0) {
-        allImages.push(...output);
-      } else {
-        console.warn(`No output received from the API in run ${i + 1}`);
-      }
+    if (output && output.length > 0) {
+      allImages.push(...output);
+    } else {
+      console.warn(`No output received from the API`);
     }
 
     // Delete the temporary uploaded file
     fs.unlinkSync(imageFile.path);
 
     if (allImages.length > 0) {
-      res.json({ image_urls: allImages });
+      // Mark token as used
+      await db.query('UPDATE tokens SET used = TRUE WHERE token = $1', [sessionToken]);
+
+      // Remove token from session
+      delete req.session.token;
+
+      // Save the session to ensure the token removal is persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error('Error saving session:', err);
+          return res.status(500).json({ error: 'Failed to update session' });
+        }
+
+        // Return generated images
+        res.json({ image_urls: allImages });
+      });
     } else {
-      throw new Error('No output received from the API after multiple attempts');
+      throw new Error('No output received from the API');
     }
   } catch (error) {
     console.error('Error generating realistic images:', error);

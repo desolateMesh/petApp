@@ -235,6 +235,10 @@
           body: formData,
         });
 
+        if (response.status === 401) {
+          throw new Error('Invalid or used token');
+        }
+
         if (!response.ok) {
           throw new Error('Failed to generate image');
         }
@@ -349,9 +353,12 @@
 
       } catch (error) {
         console.error('Failed to generate image:', error);
-        errorMessage.textContent = 'Failed to generate image. Please try again.';
-        errorMessage.style.display = 'block';
-
+        if (error.message === 'Invalid or used token') {
+          window.location.href = '/payment-error.html';
+        } else {
+          errorMessage.textContent = 'Failed to generate image. Please try again.';
+          errorMessage.style.display = 'block';
+        }
       } finally {
         generateButton.disabled = false;
         generateButton.textContent = 'Generate Image';
@@ -380,7 +387,6 @@ function downloadImage(url, filename) {
     console.log('Page loaded, calling checkPaymentStatus');
     checkPaymentStatus();
   </script>
-  <script src="/js/server/security.js"></script>
   <script>
     window.addEventListener('beforeunload', function (e) {
       fetch('/clear-paid-session', { method: 'POST' });
