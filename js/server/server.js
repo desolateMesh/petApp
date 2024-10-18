@@ -316,13 +316,22 @@ app.post('/process-image-3d-figure', upload.single('image'), async (req, res) =>
   }
 });
 
-app.post('/generate-3d-figure', checkTokenValidity, async (req, res) => {
+app.post('/generate-3d-figure', async (req, res) => {
   const sessionToken = req.session.token;
+  if (!sessionToken) {
+    return res.status(401).json({ error: 'No token found in session' });
+  }
+
   try {
+    const tokenResult = await db.query('SELECT * FROM tokens WHERE token = $1 AND used = FALSE', [sessionToken]);
+    if (tokenResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or used token' });
+    }
+
     const { prompt } = req.body;
     const allImages = [];
 
-    // Generate images (your existing code here)
+    // Your existing image generation code here
     for (let i = 0; i < 1; i++) {
       const images = await generateImages(prompt);
       if (images && images.length > 0) {
