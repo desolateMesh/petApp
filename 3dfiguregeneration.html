@@ -142,11 +142,31 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Call checkTokenValidity at the start
+      checkTokenValidity();
+
       const uploadForm = document.getElementById('uploadForm');
       const promptText = document.getElementById('promptText');
       const generateButton = document.getElementById('generateButton');
       const spinner = document.getElementById('spinner');
       const errorMessage = document.getElementById('errorMessage');
+
+      async function checkTokenValidity() {
+        try {
+          const response = await fetch('/validate-token');
+          const data = await response.json();
+          
+          if (!data.valid) {
+            window.location.href = '/payment-error.html';
+          } else {
+            // If token is valid, show the upload form
+            uploadForm.style.display = 'block';
+          }
+        } catch (error) {
+          console.error('Error validating token:', error);
+          window.location.href = '/payment-error.html';
+        }
+      }
 
       uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -156,7 +176,7 @@
         const formData = new FormData(this);
 
         try {
-          const response = await fetch('/process-image-3d-figure', {  // Corrected endpoint
+          const response = await fetch('/process-image-3d-figure', {
             method: 'POST',
             body: formData
           });
@@ -174,7 +194,7 @@
         } finally {
           spinner.style.display = 'none';
         }
-    });
+      });
 
       generateButton.addEventListener('click', async function() {
         spinner.style.display = 'block';
@@ -190,20 +210,28 @@
           });
 
           if (!response.ok) {
-            throw new Error('Failed to generate 3D figure');
+            if (response.status === 401) {
+              // Token is invalid or used
+              window.location.href = '/payment-error.html';
+              return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to generate 3D figure');
           }
 
           const data = await response.json();
+          if (!data.image_urls || data.image_urls.length === 0) {
+            throw new Error('No images were generated');
+          }
           displayGeneratedImages(data.image_urls);
           
           // Hide the upload form and generate button after images are generated
-          document.getElementById('uploadForm').style.display = 'none';
+          uploadForm.style.display = 'none';
           generateButton.style.display = 'none';
-
 
         } catch (error) {
           console.error('Error:', error);
-          errorMessage.textContent = 'An error occurred while generating the 3D figure. Please try again.';
+          errorMessage.textContent = error.message || 'An error occurred while generating the 3D figure. Please try again.';
           errorMessage.style.display = 'block';
         } finally {
           spinner.style.display = 'none';
@@ -258,8 +286,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
